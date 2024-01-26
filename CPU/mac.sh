@@ -3,7 +3,7 @@ LIB_PATH=/usr/local/Cellar/opencv/4.9.0_1/lib
 
 DYLIB=false
 
-if [ $DYLIB -eq 1 ]
+if [ $DYLIB == false ]
 then
     clear
 
@@ -11,7 +11,8 @@ then
 
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
-    clang++ -Wall -Wno-deprecated -std=c++20 -o App ../test/Main.cpp ../src/*.cpp \
+    clang++ -Wall -Wno-deprecated -std=c++20 -o App \
+    ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
     -I ${INCLUDE_PATH} -L ${LIB_PATH} \
     -lopencv_core \
     -lopencv_imgproc \

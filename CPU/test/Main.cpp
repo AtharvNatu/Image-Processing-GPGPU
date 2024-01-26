@@ -1,8 +1,12 @@
-#include "../include/ImageOperations.hpp"
+#include "../include/Common/Logger.hpp"
+#include "../include/ChangeDetection/ChangeDetection.hpp"
 
 int main(int argc, char **argv)
 {
-    loadImage(string(argv[1]));
+    initializeLog();
+    printLog("Initial Log Test ...");
+
+    cpuDetectChanges(string(argv[1]), "");
 
     return 0;
 }
