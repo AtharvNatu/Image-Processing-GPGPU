@@ -1,7 +1,0 @@
-*.png
-*.bmp
-
-bin/* 
-
-images/input/*.png
-images/output/*.png
