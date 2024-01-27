@@ -16,16 +16,28 @@
         //     "intelliSenseMode": "macos-clang-x64"
         // },
 
+        // {
+        //     "name": "Linux",
+        //     "includePath": [
+        //         "${workspaceFolder}/**",
+        //         "/usr/include/opencv4"
+        //     ],
+        //     "compilerPath": "/usr/bin/g++",
+        //     "cStandard": "c17",
+        //     "cppStandard": "c++20",
+        //     "intelliSenseMode": "linux-gcc-x64"
+        // }
+
         {
-            "name": "Linux",
+            "name": "Windows",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/opencv4"
+                "C:\\opencv\\build\\include"
             ],
-            "compilerPath": "/usr/bin/g++",
+            "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-x64"
+            "intelliSenseMode": "windows-msvc-x64"
         }
     ],
     "version": 4
