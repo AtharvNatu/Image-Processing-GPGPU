@@ -1,5 +1,7 @@
 #include "../../include/ChangeDetection/ChangeDetection.hpp"
 
+#define THRESHOLD 90
+
 // Function Definitions
 cv::Mat loadImage(string imagePath)
 {
@@ -20,6 +22,52 @@ void saveImage(string imagePath, cv::Mat image)
     {
         cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;
         exit(OPENCV_ERROR);
+    }
+}
+
+void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage)
+{
+    // Variable Declarations
+    uchar_t oldGreyValue, newGreyValue, difference;
+
+    // Code
+    for (int i = 0; i < oldImage->rows; i++)
+    {
+        for (int j = 0; j < oldImage->cols; j++)
+        {
+            // Get RGB Vector for current pixel
+            Vec3b oldIntensityVector = oldImage->at<Vec3b>(i, j);
+            Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
+
+            // Y = 0.299 * R + 0.587 * G + 0.114 * B
+            oldGreyValue = (
+                (0.299 * oldIntensityVector[2]) + 
+                (0.587 * oldIntensityVector[1]) + 
+                (0.114 * oldIntensityVector[0])
+            );
+
+            newGreyValue = (
+                (0.299 * newIntenstiyVector[2]) + 
+                (0.587 * newIntenstiyVector[1]) + 
+                (0.114 * newIntenstiyVector[0])
+            );
+
+            difference = abs(oldGreyValue - newGreyValue);
+
+            if (difference >= THRESHOLD)
+            {
+                // Vec3b => B G R
+                outputImage->at<Vec3b>(i, j)[0] = 0;
+                outputImage->at<Vec3b>(i, j)[1] = 0;
+                outputImage->at<Vec3b>(i, j)[2] = 255;
+            }
+            else
+            {
+                outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
+                outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
+                outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
+            }
+        }
     }
 }
 
@@ -53,8 +101,17 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     cv::Mat oldImage = loadImage(oldInputImage);
     cv::Mat newImage = loadImage(newInputImage);
 
-    cv::Mat outputImage = newImage.clone();
+    // Empty Output Image => CV_8UC3 = 3-channel RGB Image
+    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
 
+    // CPU Change Detection
+    clock_t start = getClockTime();
+    {
+        __changeDetection(&oldImage, &newImage, &outputImage);
+    }
+    clock_t end = getClockTime();
+    double result = getExecutionTime(start, end);
+    
     // Save Image
     saveImage(outputImagePath, outputImage);
 
@@ -62,6 +119,6 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     newImage.release();
     oldImage.release();
 
-    return 0;
+    return result;
 }
 

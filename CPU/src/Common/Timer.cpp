@@ -96,7 +96,7 @@
 
     double getExecutionTime(clock_t start, clock_t end)
     {
-        return 1000.0 * (end - start) / CLOCKS_PER_SEC;
+        return double(end - start) / CLOCKS_PER_SEC;
     }
 
 #endif

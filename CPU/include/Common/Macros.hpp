@@ -15,3 +15,5 @@ enum ERRORS
     FILE_ERROR = -3
 };
 
+// Typedefs
+typedef unsigned char uchar_t;
