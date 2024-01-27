@@ -1,4 +1,7 @@
+*.png
+*.bmp
+
 bin/* 
 
-images/input/*
-images/output/*
+images/input/*.png
+images/output/*.png
