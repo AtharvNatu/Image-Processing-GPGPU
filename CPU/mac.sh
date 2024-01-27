@@ -24,7 +24,7 @@ then
     cd ..
 
     echo "Running Executable ... "
-    ./App /Users/atharv/Desktop/Projects/Images/macOS.png
+    ./App
 
 else
     # For Dylib

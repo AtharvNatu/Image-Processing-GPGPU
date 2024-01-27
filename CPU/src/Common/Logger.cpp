@@ -1,9 +1,6 @@
 #include "../../include/Common/Logger.hpp"
 
-// Global Variables
-FILE *logFile = nullptr;
-
-void initializeLog(void)
+void Logger::initialize(void)
 {
     // Code
     logFile = fopen("./logs/Log.txt", "a+");
@@ -14,7 +11,7 @@ void initializeLog(void)
     }
 }
 
-void printLog(const char* fmt, ...)
+void Logger::printLog(const char* fmt, ...)
 {
     // Variable Declarations
     va_list argList;
@@ -37,7 +34,7 @@ void printLog(const char* fmt, ...)
     fprintf(logFile, "\n");
 }
 
-string getCurrentTime(void)
+string Logger::getCurrentTime(void)
 {
     // Code
     time_t currentTime = chrono::system_clock::to_time_t(chrono::system_clock::now());
@@ -46,7 +43,7 @@ string getCurrentTime(void)
     return strTime;
 }
 
-void uninitializeLog(void)
+void Logger::uninitialize(void)
 {
     // Code
     if (logFile)

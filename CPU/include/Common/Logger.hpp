@@ -12,9 +12,20 @@
     using namespace std;
 #endif              // namespace std
 
-// Function Declarations
-void initializeLog(void);
-void printLog(const char* fmt, ...);
-string getCurrentTime(void);
-void uninitializeLog(void);
+
+class Logger
+{
+    // Member Variables
+    private:
+        FILE *logFile = nullptr;
+
+    // Member Function Declarations
+    public:
+        void initialize(void);
+        void printLog(const char* fmt, ...);
+        string getCurrentTime(void);
+        void uninitialize(void);
+};
+
+
 
