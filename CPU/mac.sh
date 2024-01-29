@@ -23,7 +23,6 @@ then
     -lopencv_imgcodecs \
     -lomp \
     
-
     cp App ../
     echo "Done ... "
 
