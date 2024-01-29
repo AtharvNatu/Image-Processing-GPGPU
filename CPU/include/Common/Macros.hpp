@@ -8,6 +8,10 @@
     #define OS 3
 #endif
 
+#if (OS == 1)
+    #include <windows.h>
+#endif
+
 enum ERRORS
 {
     LOG_ERROR = -1,

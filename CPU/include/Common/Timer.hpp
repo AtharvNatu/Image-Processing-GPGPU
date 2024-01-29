@@ -1,4 +1,7 @@
 #include "Macros.hpp"
+#include <iostream>
+
+using namespace std;
 
 #if (OS == 1)
 
@@ -10,7 +13,8 @@
     #pragma comment(lib, "kernel32.lib")
 
     // Function Declarations
-    double getExecutionTime(void);
+    double getClockTime(void);
+    double getExecutionTime(double start, double end);
 
 #elif (OS == 2 || OS == 3)
     

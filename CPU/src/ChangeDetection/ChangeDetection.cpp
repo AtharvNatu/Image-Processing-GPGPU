@@ -25,12 +25,27 @@ void saveImage(string imagePath, cv::Mat image)
     }
 }
 
-void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage)
+int getThreadCount(void)
+{
+    // Code
+    int count = 1;
+
+    #pragma omp parallel
+    {
+        #pragma omp single
+        count = omp_get_num_threads();
+    }
+
+    return count;
+}
+
+void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
 
     // Code
+    #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) num_threads(threadCount) collapse(2)
     for (int i = 0; i < oldImage->rows; i++)
     {
         for (int j = 0; j < oldImage->cols; j++)
@@ -40,13 +55,13 @@ void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImag
             Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
 
             // Y = 0.299 * R + 0.587 * G + 0.114 * B
-            oldGreyValue = (
+            oldGreyValue = static_cast<uchar_t>(
                 (0.299 * oldIntensityVector[2]) + 
                 (0.587 * oldIntensityVector[1]) + 
                 (0.114 * oldIntensityVector[0])
             );
 
-            newGreyValue = (
+            newGreyValue = static_cast<uchar_t>(
                 (0.299 * newIntenstiyVector[2]) + 
                 (0.587 * newIntenstiyVector[1]) + 
                 (0.114 * newIntenstiyVector[0])
@@ -59,7 +74,7 @@ void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImag
                 // Vec3b => B G R
                 outputImage->at<Vec3b>(i, j)[0] = 0;
                 outputImage->at<Vec3b>(i, j)[1] = 0;
-                outputImage->at<Vec3b>(i, j)[2] = 255;
+                outputImage->at<Vec3b>(i, j)[2] = 255;  
             }
             else
             {
@@ -105,12 +120,18 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
 
     // CPU Change Detection
-    clock_t start = getClockTime();
+    int threadCount = getThreadCount();
+
+    StopWatchInterface *timer = NULL;
+    sdkCreateTimer(&timer);
+    sdkStartTimer(&timer);
     {
-        __changeDetection(&oldImage, &newImage, &outputImage);
+        __changeDetection(&oldImage, &newImage, &outputImage, threadCount);
     }
-    clock_t end = getClockTime();
-    double result = getExecutionTime(start, end);
+    sdkStopTimer(&timer);
+    double result = sdkGetTimerValue(&timer) / 1000.0;
+    sdkDeleteTimer(&timer);
+    timer = NULL;
     
     // Save Image
     saveImage(outputImagePath, outputImage);

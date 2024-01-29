@@ -9,11 +9,11 @@ int main(int argc, char **argv)
     logger = new Logger();
     
     logger->initialize();
-    logger->printLog("C++ Log Test : macOS...");
+    logger->printLog("C++ Log Test : macOS Sonoma...");
 
     double cpuTime = cpuDetectChanges(
-        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/1024_old.png",
-        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/1024_new.png",
+        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-1.jpg",
+        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-2.jpg",
         "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output"
     );
 

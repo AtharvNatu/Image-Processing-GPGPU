@@ -1,5 +1,8 @@
-INCLUDE_PATH=/usr/local/Cellar/opencv/4.9.0_1/include/opencv4
-LIB_PATH=/usr/local/Cellar/opencv/4.9.0_1/lib
+OPENCV_INCLUDE_PATH=/usr/local/Cellar/opencv/4.9.0_1/include/opencv4
+OPENMP_INCLUDE_PATH=/usr/local/opt/libomp/include
+
+OPENCV_LIB_PATH=/usr/local/Cellar/opencv/4.9.0_1/lib
+OPENMP_LIB_PATH=/usr/local/opt/libomp/lib
 
 DYLIB=false
 
@@ -11,12 +14,14 @@ then
 
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
-    clang++ -Wall -Wno-deprecated -std=c++20 -o App \
+    clang++ -Wall -Wno-deprecated -std=c++20 -Xclang -fopenmp -o App \
     ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
-    -I ${INCLUDE_PATH} -L ${LIB_PATH} \
+    -I ${OPENCV_INCLUDE_PATH} -I ${OPENMP_INCLUDE_PATH} \
+    -L ${OPENCV_LIB_PATH} -L ${OPENMP_LIB_PATH} \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
+    -lomp
 
     cp App ../
     echo "Done ... "
@@ -29,19 +34,23 @@ then
 else
     # For Dylib
     echo "Compiling Source Files ... "
-    # clang -shared -fpic a.c b.c -o libTest.dylib
-    clang++ -Wall -Wno-deprecated -std=c++20 -I ${INCLUDE_PATH} -c .../export/Lib.cpp ../src/*.cpp
+    clang++ -Wall -Wno-deprecated -std=c++20 -Xclang -fopenmp -c \
+    ../export/Lib.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
+    -I ${OPENCV_INCLUDE_PATH} -I ${OPENMP_INCLUDE_PATH} \
+    -L ${OPENCV_LIB_PATH} -L ${OPENMP_LIB_PATH} \
 
     echo "Creating Dynamic Library ..."
-    clang++ -shared -o libCPU.dylib *.o \
-    -L ${LIB_PATH} \
+    clang++ -shared -o libIUG-CPU.dylib *.o \
+    -L ${OPENCV_LIB_PATH} \
+    -L ${OPENMP_LIB_PATH} \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
+    -lomp
 
-    cp libCPU.dylib ../
+    cp libIUG-CPU.dylib ../
 
-    echo "Generated Library : libCPU.dylib ..." 
+    echo "Generated Library : libIUG-CPU.dylib ..." 
 
     cd ..
 fi

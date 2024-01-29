@@ -4,7 +4,8 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/local/Cellar/opencv/4.9.0_1/include/opencv4"
+                "/usr/local/Cellar/opencv/4.9.0_1/include/opencv4",
+                "/usr/local/opt/libomp/include"
             ],
             "defines": [],
             "macFrameworkPath": [
