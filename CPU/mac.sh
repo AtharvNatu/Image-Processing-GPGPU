@@ -21,7 +21,8 @@ then
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
-    -lomp
+    -lomp \
+    
 
     cp App ../
     echo "Done ... "
@@ -38,6 +39,7 @@ else
     ../export/Lib.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
     -I ${OPENCV_INCLUDE_PATH} -I ${OPENMP_INCLUDE_PATH} \
     -L ${OPENCV_LIB_PATH} -L ${OPENMP_LIB_PATH} \
+    -DRELEASE
 
     echo "Creating Dynamic Library ..."
     clang++ -shared -o libIUG-CPU.dylib *.o \

@@ -21,10 +21,10 @@ class Logger
 
     // Member Function Declarations
     public:
-        void initialize(void);
+        Logger(void);
+        ~Logger(void);
         void printLog(const char* fmt, ...);
         string getCurrentTime(void);
-        void uninitialize(void);
 };
 
 

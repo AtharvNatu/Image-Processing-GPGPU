@@ -7,18 +7,30 @@
 #include <omp.h>
 
 #include "../Common/Macros.hpp"
-#include "../Common/Timer.hpp"
+#include "../Common/Logger.hpp"
 #include "../Common/helper_timer.h"
 
 using namespace std;
 using namespace cv;
 
-// Function Declarations
+class CPUChangeDetection
+{
+    // Member Variables
+    private:
+        StopWatchInterface *cpuTimer = nullptr;
+        Logger *logger = nullptr;
 
-// Image Functions
-cv::Mat loadImage(string imagePath);
-void saveImage(string imagePath, cv::Mat image);
+    // Member Functions
+    public:
+        CPUChangeDetection(void);
+        ~CPUChangeDetection(void);
 
-void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount);
-double cpuDetectChanges(string oldInputImage, string newInputImage, string outputPath);
+        // Image Functions
+        cv::Mat loadImage(string imagePath);
+        void saveImage(string imagePath, cv::Mat image);
+
+        void __changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount);
+        double detectChanges(string oldInputImage, string newInputImage, string outputPath);
+};
+
 

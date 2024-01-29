@@ -2,44 +2,46 @@
 
 #define THRESHOLD 90
 
-// Function Definitions
-cv::Mat loadImage(string imagePath)
+// Member Function Definitions
+CPUChangeDetection::CPUChangeDetection(void)
+{
+    logger = new Logger();
+    sdkCreateTimer(&cpuTimer);
+}
+
+cv::Mat CPUChangeDetection::loadImage(string imagePath)
 {
     // Code
     cv::Mat image = imread(cv::String(imagePath));
     if (!image.data)
     {
-        cerr << endl << "Error : Failed To Load Image ... Exiting !!!" << endl;
-        exit(OPENCV_ERROR);
+        #if RELEASE
+            logger->printLog("Error : Failed To Load Image ... Exiting !!!");
+            exit(OPENCV_ERROR);
+        #else
+            cerr << endl << "Error : Failed To Load Image ... Exiting !!!" << endl;
+            exit(OPENCV_ERROR);
+        #endif 
     }
     return image;
 }
 
-void saveImage(string imagePath, cv::Mat image)
+void CPUChangeDetection::saveImage(string imagePath, cv::Mat image)
 {
     // Code
     if (!cv::imwrite(cv::String(imagePath), image))
     {
-        cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;
-        exit(OPENCV_ERROR);
+        #if RELEASE
+            logger->printLog("Error : Failed To Save Image ... Exiting !!!");
+            exit(OPENCV_ERROR);
+        #else
+            cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;
+            exit(OPENCV_ERROR);
+        #endif 
     }
 }
 
-int getThreadCount(void)
-{
-    // Code
-    int count = 1;
-
-    #pragma omp parallel
-    {
-        #pragma omp single
-        count = omp_get_num_threads();
-    }
-
-    return count;
-}
-
-void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount)
+void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
@@ -86,7 +88,7 @@ void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImag
     }
 }
 
-double cpuDetectChanges(string oldInputImage, string newInputImage, string outputPath)
+double CPUChangeDetection::detectChanges(string oldInputImage, string newInputImage, string outputPath)
 {
     // Variable Declarations
     cv::String outputImagePath;
@@ -96,8 +98,13 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     // Check Validity of Input Images
     if (!filesystem::exists(oldInputImage) || !filesystem::exists(newInputImage))
     {
-        cerr << endl << "Error : Invalid Input Image ... Exiting !!!" << endl;
-        exit(FILE_ERROR);
+        #if RELEASE
+            logger->printLog("Error : Invalid Input Image ... Exiting !!!");
+            exit(FILE_ERROR);
+        #else
+            cerr << endl << "Error : Invalid Input Image ... Exiting !!!" << endl;
+            exit(FILE_ERROR);
+        #endif
     }
 
     // Input and Output File
@@ -120,18 +127,14 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
 
     // CPU Change Detection
-    int threadCount = getThreadCount();
+    // int threadCount = getThreadCount();
 
-    StopWatchInterface *timer = NULL;
-    sdkCreateTimer(&timer);
-    sdkStartTimer(&timer);
+    sdkStartTimer(&cpuTimer);
     {
-        __changeDetection(&oldImage, &newImage, &outputImage, threadCount);
+        __changeDetectionKernel(&oldImage, &newImage, &outputImage, 0);
     }
-    sdkStopTimer(&timer);
-    double result = sdkGetTimerValue(&timer) / 1000.0;
-    sdkDeleteTimer(&timer);
-    timer = NULL;
+    sdkStopTimer(&cpuTimer);
+    double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
     
     // Save Image
     saveImage(outputImagePath, outputImage);
@@ -143,3 +146,11 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     return result;
 }
 
+CPUChangeDetection::~CPUChangeDetection(void)
+{
+    sdkDeleteTimer(&cpuTimer);
+    cpuTimer = nullptr;
+
+    delete logger;
+    logger = nullptr;
+}
