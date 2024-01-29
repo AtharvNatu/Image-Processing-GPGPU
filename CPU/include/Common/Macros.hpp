@@ -12,6 +12,8 @@ enum ERRORS
 {
     LOG_ERROR = -1,
     OPENCV_ERROR = -2,
-    PH2
+    FILE_ERROR = -3
 };
 
+// Typedefs
+typedef unsigned char uchar_t;

@@ -41,7 +41,7 @@
 // Function Definitions
 #if (OS == 1)
 
-    double getTime(void)
+    double getClockTime(void)
     {
         // Variables
         FILETIME CreationTime, ExitTime, KernelTime, UserTime;
@@ -66,14 +66,14 @@
                         (double)UserSystemTime.wMilliseconds / 1000;
             }
 
-            // Kernel System Time
-            if (FileTimeToSystemTime(&KernelTime, &KernelSystemTime) != -1)
-            {
-                *KernelProcessTime = (double)KernelSystemTime.wHour * 3600.0 +
-                                    (double)KernelSystemTime.wMinute * 60.0 +
-                                    (double)KernelSystemTime.wSecond +
-                                    (double)KernelSystemTime.wMilliseconds / 1000;
-            }
+            // // Kernel System Time
+            // if (FileTimeToSystemTime(&KernelTime, &KernelSystemTime) != -1)
+            // {
+            //     *KernelProcessTime = (double)KernelSystemTime.wHour * 3600.0 +
+            //                         (double)KernelSystemTime.wMinute * 60.0 +
+            //                         (double)KernelSystemTime.wSecond +
+            //                         (double)KernelSystemTime.wMilliseconds / 1000;
+            // }
 
             time = (double)(UserTime.dwLowDateTime |
                 ((unsigned long long)UserTime.dwHighDateTime << 32)) * 0.0000001;
@@ -87,6 +87,11 @@
         }
     }
 
+    double getExecutionTime(double start, double end)
+    {
+        return double(end - start);
+    }
+
 #elif (OS == 2 || OS == 3)
 
     clock_t getClockTime(void)
@@ -96,7 +101,7 @@
 
     double getExecutionTime(clock_t start, clock_t end)
     {
-        return 1000.0 * (end - start) / CLOCKS_PER_SEC;
+        return double(end - start) / CLOCKS_PER_SEC;
     }
 
 #endif
