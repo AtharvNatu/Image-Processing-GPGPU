@@ -17,7 +17,7 @@ then
     -lopencv_imgproc \
     -lopencv_imgcodecs \
     -fopenmp
-    
+
     cp App ../
     echo "Done ... "
 
@@ -36,6 +36,7 @@ else
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
+    -fopenmp
 
     cp libCPU.so ../
 
