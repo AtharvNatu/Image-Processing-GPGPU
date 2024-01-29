@@ -4,7 +4,7 @@ OPENMP_INCLUDE_PATH=/usr/local/opt/libomp/include
 OPENCV_LIB_PATH=/usr/local/Cellar/opencv/4.9.0_1/lib
 OPENMP_LIB_PATH=/usr/local/opt/libomp/lib
 
-DYLIB=false
+DYLIB=true
 
 if [ $DYLIB == false ]
 then
@@ -32,12 +32,15 @@ then
     ./App
 
 else
+    clear
+
+    cd ./bin
+
     # For Dylib
     echo "Compiling Source Files ... "
     clang++ -Wall -Wno-deprecated -std=c++20 -Xclang -fopenmp -c \
     ../export/Lib.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
     -I ${OPENCV_INCLUDE_PATH} -I ${OPENMP_INCLUDE_PATH} \
-    -L ${OPENCV_LIB_PATH} -L ${OPENMP_LIB_PATH} \
     -DRELEASE
 
     echo "Creating Dynamic Library ..."
