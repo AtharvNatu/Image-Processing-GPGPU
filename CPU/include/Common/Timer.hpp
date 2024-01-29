@@ -1,4 +1,7 @@
 #include "Macros.hpp"
+#include <iostream>
+
+using namespace std;
 
 #if (OS == 1)
 

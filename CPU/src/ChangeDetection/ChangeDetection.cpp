@@ -105,13 +105,24 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
 
     // CPU Change Detection
-    double KernelProcessStartTime = 0, KernelProcessEndTime = 0, UserProcessTime = 0;
-    double start = getClockTime();
+    // double start = getClockTime();
+    // {
+    //     __changeDetection(&oldImage, &newImage, &outputImage);
+    // }
+    // double end = getClockTime();
+    // double result = getExecutionTime(start, end);
+
+    StopWatchInterface *timer = NULL;
+
+    sdkCreateTimer(&timer);
+    sdkStartTimer(&timer);
     {
         __changeDetection(&oldImage, &newImage, &outputImage);
     }
-    double end = getClockTime();
-    double result = getExecutionTime(start, end);
+    sdkStopTimer(&timer);
+    double result = sdkGetTimerValue(&timer) / 1000.0;
+    sdkDeleteTimer(&timer);
+    timer = NULL;
     
     // Save Image
     saveImage(outputImagePath, outputImage);

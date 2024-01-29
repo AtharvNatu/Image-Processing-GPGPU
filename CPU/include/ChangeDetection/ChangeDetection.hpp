@@ -7,6 +7,7 @@
 
 #include "../Common/Macros.hpp"
 #include "../Common/Timer.hpp"
+#include "../Common/helper_timer.h"
 
 using namespace std;
 using namespace cv;
