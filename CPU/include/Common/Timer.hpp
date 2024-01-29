@@ -1,7 +1,7 @@
 #include "Macros.hpp"
+#include <iostream>
 
-// Common Function Pointer Declration
-void (*pFn)(int);
+using namespace std;
 
 #if (OS == 1)
 
@@ -13,11 +13,12 @@ void (*pFn)(int);
     #pragma comment(lib, "kernel32.lib")
 
     // Function Declarations
-    double getExecutionTime(void);
+    double getClockTime(void);
+    double getExecutionTime(double start, double end);
 
 #elif (OS == 2 || OS == 3)
     
-    #include <time.h>
+    #include <ctime>
 
     // Function Declarations
     clock_t getClockTime(void);

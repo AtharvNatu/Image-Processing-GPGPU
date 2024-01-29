@@ -10,23 +10,24 @@ then
 
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
-    g++ -Wall -Wno-deprecated -std=c++20 -o App \
+    g++ -Wall -Wno-deprecated -std=c++20  -o App \
     ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
     -I ${INCLUDE_PATH} \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
-
+    -fopenmp
+    
     cp App ../
     echo "Done ... "
 
     cd ..
 
     echo "Running Executable ... "
-    ./App /home/atharv/Pictures/Images/island.jpg
+    ./App
 
 else
-    # For Dylib
+    # For Shared Object
     echo "Compiling Source Files ... "
     clang++ -Wall -Wno-deprecated -std=c++20 -I ${INCLUDE_PATH} -c .../export/Lib.cpp ../src/*.cpp
 

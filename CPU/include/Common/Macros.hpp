@@ -8,10 +8,16 @@
     #define OS 3
 #endif
 
+#if (OS == 1)
+    #include <windows.h>
+#endif
+
 enum ERRORS
 {
     LOG_ERROR = -1,
     OPENCV_ERROR = -2,
-    PH2
+    FILE_ERROR = -3
 };
 
+// Typedefs
+typedef unsigned char uchar_t;
