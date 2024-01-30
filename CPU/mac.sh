@@ -4,7 +4,7 @@ OPENMP_INCLUDE_PATH=/usr/local/opt/libomp/include
 OPENCV_LIB_PATH=/usr/local/Cellar/opencv/4.9.0_1/lib
 OPENMP_LIB_PATH=/usr/local/opt/libomp/lib
 
-DYLIB=true
+DYLIB=false
 
 if [ $DYLIB == false ]
 then
@@ -21,7 +21,7 @@ then
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
-    -lomp \
+    -lm -lomp \
     
     cp App ../
     echo "Done ... "

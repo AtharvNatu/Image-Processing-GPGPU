@@ -5,40 +5,12 @@
 // Member Function Definitions
 CPUChangeDetection::CPUChangeDetection(void)
 {
+    // Code
     logger = new Logger();
+    imageUtils = new ImageUtils();
+    denoiser = new Denoising();
+
     sdkCreateTimer(&cpuTimer);
-}
-
-cv::Mat CPUChangeDetection::loadImage(string imagePath)
-{
-    // Code
-    cv::Mat image = imread(cv::String(imagePath));
-    if (!image.data)
-    {
-        #if RELEASE
-            logger->printLog("Error : Failed To Load Image ... Exiting !!!");
-            exit(OPENCV_ERROR);
-        #else
-            cerr << endl << "Error : Failed To Load Image ... Exiting !!!" << endl;
-            exit(OPENCV_ERROR);
-        #endif 
-    }
-    return image;
-}
-
-void CPUChangeDetection::saveImage(string imagePath, cv::Mat image)
-{
-    // Code
-    if (!cv::imwrite(cv::String(imagePath), image))
-    {
-        #if RELEASE
-            logger->printLog("Error : Failed To Save Image ... Exiting !!!");
-            exit(OPENCV_ERROR);
-        #else
-            cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;
-            exit(OPENCV_ERROR);
-        #endif 
-    }
 }
 
 void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount)
@@ -74,6 +46,8 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
             if (difference >= THRESHOLD)
             {
                 // Vec3b => B G R
+
+                // 255 255 255 => For Black and White Image
                 outputImage->at<Vec3b>(i, j)[0] = 0;
                 outputImage->at<Vec3b>(i, j)[1] = 0;
                 outputImage->at<Vec3b>(i, j)[2] = 255;  
@@ -95,7 +69,7 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
 
     // Code
 
-    // Check Validity of Input Images
+    //* Check Validity of Input Images
     if (!filesystem::exists(oldInputImage) || !filesystem::exists(newInputImage))
     {
         #if RELEASE
@@ -120,13 +94,16 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
     #endif
 
     // Load Images
-    cv::Mat oldImage = loadImage(oldInputImage);
-    cv::Mat newImage = loadImage(newInputImage);
+    cv::Mat oldImage = imageUtils->loadImage(oldInputImage);
+    cv::Mat newImage = imageUtils->loadImage(newInputImage);
 
-    // Empty Output Image => CV_8UC3 = 3-channel RGB Image
+    //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
 
-    // CPU Change Detection
+    //* Image Denoising using Gaussian Blur
+    // denoiser->gaussianBlur(&oldImage);
+
+    //* CPU Change Detection
     // int threadCount = getThreadCount();
 
     sdkStartTimer(&cpuTimer);
@@ -137,7 +114,7 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
     double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
     
     // Save Image
-    saveImage(outputImagePath, outputImage);
+    imageUtils->saveImage(outputImagePath, outputImage);
 
     outputImage.release();
     newImage.release();
@@ -148,8 +125,15 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
 
 CPUChangeDetection::~CPUChangeDetection(void)
 {
+    // Code
     sdkDeleteTimer(&cpuTimer);
     cpuTimer = nullptr;
+
+    delete denoiser;
+    denoiser = nullptr;
+    
+    delete imageUtils;
+    imageUtils = nullptr;
 
     delete logger;
     logger = nullptr;

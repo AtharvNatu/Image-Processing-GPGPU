@@ -24,8 +24,8 @@ int main(int argc, char **argv)
     #endif
 
     double cpuTime = cpuChangeDetector->detectChanges(
-        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/1024_old.png",
-        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/1024_new.png",
+        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/Dubai_1.jpg",
+        "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/Dubai_2.jpg",
         "/Users/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output"
     );
 
