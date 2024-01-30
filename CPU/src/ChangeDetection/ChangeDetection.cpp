@@ -1,7 +1,5 @@
 #include "../../include/ChangeDetection/ChangeDetection.hpp"
 
-#define THRESHOLD 90
-
 // Member Function Definitions
 CPUChangeDetection::CPUChangeDetection(void)
 {
@@ -13,13 +11,13 @@ CPUChangeDetection::CPUChangeDetection(void)
     sdkCreateTimer(&cpuTimer);
 }
 
-void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threadCount)
+void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threshold)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
 
     // Code
-    #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) num_threads(threadCount) collapse(2)
+    #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) collapse(2)
     for (int i = 0; i < oldImage->rows; i++)
     {
         for (int j = 0; j < oldImage->cols; j++)
@@ -43,7 +41,7 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
 
             difference = abs(oldGreyValue - newGreyValue);
 
-            if (difference >= THRESHOLD)
+            if (difference >= threshold)
             {
                 // Vec3b => B G R
 
@@ -66,6 +64,8 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
 {
     // Variable Declarations
     cv::String outputImagePath;
+    double threshold = 0;
+    double maxValue = 255;
 
     // Code
 
@@ -98,16 +98,21 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
     cv::Mat newImage = imageUtils->loadImage(newInputImage);
 
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
-    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
-
-    //* Image Denoising using Gaussian Blur
-    // denoiser->gaussianBlur(&oldImage);
-
-    //* CPU Change Detection
-    // int threadCount = getThreadCount();
+    // cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
+    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC1, 0);
 
     sdkStartTimer(&cpuTimer);
-    {
+    {   
+        //* Image Denoising using Gaussian Blur
+    
+        //* Old Image
+    
+
+        //* New Image
+        
+
+        //* CPU Change Detection
+        // int threadCount = getThreadCount();
         __changeDetectionKernel(&oldImage, &newImage, &outputImage, 0);
     }
     sdkStopTimer(&cpuTimer);
