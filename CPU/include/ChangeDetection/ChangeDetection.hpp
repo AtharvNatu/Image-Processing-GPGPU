@@ -3,22 +3,39 @@
 #include <iostream>
 #include <cstdlib>
 #include <filesystem>
+#include <cmath>
 #include <opencv2/opencv.hpp>
 #include <omp.h>
 
+#include "ImageUtils.hpp"
+#include "Denoising.hpp"
+
+#include "../Common/Threading.hpp"
 #include "../Common/Macros.hpp"
-#include "../Common/Timer.hpp"
+#include "../Common/Logger.hpp"
 #include "../Common/helper_timer.h"
 
 using namespace std;
 using namespace cv;
 
-// Function Declarations
+class CPUChangeDetection
+{
+    // Member Variables
+    private:
+        StopWatchInterface *cpuTimer = nullptr;
+        ImageUtils *imageUtils = nullptr;
+        Denoising *denoiser = nullptr;
 
-// Image Functions
-cv::Mat loadImage(string imagePath);
-void saveImage(string imagePath, cv::Mat image);
+        void __changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threshold, bool multiThreading, int threadCount);
 
-void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage);
-double cpuDetectChanges(string oldInputImage, string newInputImage, string outputPath);
+    public:
+        Logger *logger = nullptr;
+
+    // Member Functions
+    public:
+        CPUChangeDetection(void);
+        ~CPUChangeDetection(void);
+        double detectChanges(string oldInputImage, string newInputImage, string outputPath, bool multiThreading, int threadCount);
+};
+
 

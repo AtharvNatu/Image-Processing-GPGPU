@@ -1,6 +1,6 @@
-INCLUDE_PATH=/usr/include/opencv4
+OPENCV_INCLUDE_PATH=/usr/include/opencv4
 
-SHARED_LIB=false
+SHARED_LIB=true
 
 if [ $SHARED_LIB == false ]
 then
@@ -10,12 +10,13 @@ then
 
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
-    g++ -Wall -Wno-deprecated -std=c++20  -o App \
+    g++ -Wall -Wno-deprecated -std=c++20 -o App \
     ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
-    -I ${INCLUDE_PATH} \
+    -I ${OPENCV_INCLUDE_PATH} \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
+    -lm -lomp \
     -fopenmp
 
     cp App ../
@@ -27,20 +28,27 @@ then
     ./App
 
 else
-    # For Shared Object
-    echo "Compiling Source Files ... "
-    clang++ -Wall -Wno-deprecated -std=c++20 -I ${INCLUDE_PATH} -c .../export/Lib.cpp ../src/*.cpp
+    clear
 
-    echo "Creating Shared Object ..."
-    clang++ -shared -o libCPU.so *.o \
+    cd ./bin
+
+    # For Dylib
+    echo "Compiling Source Files ... "
+    g++ -fPIC -Wall -Wno-deprecated -std=c++20 -fopenmp -c \
+    ../export/Lib.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
+    -I ${OPENCV_INCLUDE_PATH} \
+    -DRELEASE
+
+    echo "Creating Dynamic Library ..."
+    g++ -shared -o libIUG-CPU.dylib *.o \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
-    -fopenmp
+    -lomp -lm
 
-    cp libCPU.so ../
+    cp libIUG-CPU.dylib ../
 
-    echo "Generated Library : libCPU.so ..." 
+    echo "Generated Library : libIUG-CPU.dylib ..." 
 
     cd ..
 fi

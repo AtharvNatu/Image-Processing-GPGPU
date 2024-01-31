@@ -12,6 +12,8 @@
     #include <windows.h>
 #endif
 
+#define GAUSSIAN_KERNEL_SIZE 3
+
 enum ERRORS
 {
     LOG_ERROR = -1,

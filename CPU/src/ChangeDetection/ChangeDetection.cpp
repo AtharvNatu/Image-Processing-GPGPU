@@ -1,101 +1,129 @@
 #include "../../include/ChangeDetection/ChangeDetection.hpp"
 
-#define THRESHOLD 90
-
-// Function Definitions
-cv::Mat loadImage(string imagePath)
+// Member Function Definitions
+CPUChangeDetection::CPUChangeDetection(void)
 {
     // Code
-    cv::Mat image = imread(cv::String(imagePath));
-    if (!image.data)
-    {
-        cerr << endl << "Error : Failed To Load Image ... Exiting !!!" << endl;
-        exit(OPENCV_ERROR);
-    }
-    return image;
+    logger = new Logger();
+    imageUtils = new ImageUtils();
+    denoiser = new Denoising();
+
+    sdkCreateTimer(&cpuTimer);
 }
 
-void saveImage(string imagePath, cv::Mat image)
-{
-    // Code
-    if (!cv::imwrite(cv::String(imagePath), image))
-    {
-        cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;
-        exit(OPENCV_ERROR);
-    }
-}
-
-int get_num_threads(void) 
-{
-    int num_threads = 1;
-    #pragma omp parallel
-    {
-        #pragma omp single
-        num_threads = omp_get_num_threads();
-    }
-    return num_threads;
-}
-
-void __changeDetection(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage)
+void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threshold, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
 
     // Code
-    #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) collapse(2)
-    for (int i = 0; i < oldImage->rows; i++)
+    if (multiThreading)
     {
-        for (int j = 0; j < oldImage->cols; j++)
+        #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) num_threads(threadCount) collapse(2)
+        for (int i = 0; i < oldImage->rows; i++)
         {
-            // Get RGB Vector for current pixel
-            Vec3b oldIntensityVector = oldImage->at<Vec3b>(i, j);
-            Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
-
-            // Y = 0.299 * R + 0.587 * G + 0.114 * B
-            oldGreyValue = static_cast<uchar_t>(
-                (0.299 * oldIntensityVector[2]) + 
-                (0.587 * oldIntensityVector[1]) + 
-                (0.114 * oldIntensityVector[0])
-            );
-
-            newGreyValue = static_cast<uchar_t>(
-                (0.299 * newIntenstiyVector[2]) + 
-                (0.587 * newIntenstiyVector[1]) + 
-                (0.114 * newIntenstiyVector[0])
-            );
-
-            difference = abs(oldGreyValue - newGreyValue);
-
-            if (difference >= THRESHOLD)
+            for (int j = 0; j < oldImage->cols; j++)
             {
-                // Vec3b => B G R
-                outputImage->at<Vec3b>(i, j)[0] = 0;
-                outputImage->at<Vec3b>(i, j)[1] = 0;
-                outputImage->at<Vec3b>(i, j)[2] = 255;  
-            }
-            else
-            {
+                // Get RGB Vector for current pixel
+                Vec3b oldIntensityVector = oldImage->at<Vec3b>(i, j);
+                Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
 
-                outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
-                outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
-                outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
+                // Y = 0.299 * R + 0.587 * G + 0.114 * B
+                oldGreyValue = static_cast<uchar_t>(
+                    (0.299 * oldIntensityVector[2]) + 
+                    (0.587 * oldIntensityVector[1]) + 
+                    (0.114 * oldIntensityVector[0])
+                );
+
+                newGreyValue = static_cast<uchar_t>(
+                    (0.299 * newIntenstiyVector[2]) + 
+                    (0.587 * newIntenstiyVector[1]) + 
+                    (0.114 * newIntenstiyVector[0])
+                );
+
+                difference = abs(oldGreyValue - newGreyValue);
+
+                if (difference >= threshold)
+                {
+                    // Vec3b => B G R
+
+                    // 255 255 255 => For Black and White Image
+                    outputImage->at<Vec3b>(i, j)[0] = 0;
+                    outputImage->at<Vec3b>(i, j)[1] = 0;
+                    outputImage->at<Vec3b>(i, j)[2] = 255;  
+                }
+                else
+                {
+                    outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
+                    outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
+                    outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
+                }
             }
         }
     }
+    else
+    {
+        for (int i = 0; i < oldImage->rows; i++)
+        {
+            for (int j = 0; j < oldImage->cols; j++)
+            {
+                // Get RGB Vector for current pixel
+                Vec3b oldIntensityVector = oldImage->at<Vec3b>(i, j);
+                Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
+
+                // Y = 0.299 * R + 0.587 * G + 0.114 * B
+                oldGreyValue = static_cast<uchar_t>(
+                    (0.299 * oldIntensityVector[2]) + 
+                    (0.587 * oldIntensityVector[1]) + 
+                    (0.114 * oldIntensityVector[0])
+                );
+
+                newGreyValue = static_cast<uchar_t>(
+                    (0.299 * newIntenstiyVector[2]) + 
+                    (0.587 * newIntenstiyVector[1]) + 
+                    (0.114 * newIntenstiyVector[0])
+                );
+
+                difference = abs(oldGreyValue - newGreyValue);
+
+                if (difference >= threshold)
+                {
+                    // Vec3b => B G R
+
+                    // 255 255 255 => For Black and White Image
+                    outputImage->at<Vec3b>(i, j)[0] = 0;
+                    outputImage->at<Vec3b>(i, j)[1] = 0;
+                    outputImage->at<Vec3b>(i, j)[2] = 255;  
+                }
+                else
+                {
+                    outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
+                    outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
+                    outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
+                }
+            }
+        }
+    }
+    
 }
 
-double cpuDetectChanges(string oldInputImage, string newInputImage, string outputPath)
+double CPUChangeDetection::detectChanges(string oldInputImage, string newInputImage, string outputPath, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     cv::String outputImagePath;
 
     // Code
 
-    // Check Validity of Input Images
+    //* Check Validity of Input Images
     if (!filesystem::exists(oldInputImage) || !filesystem::exists(newInputImage))
     {
-        cerr << endl << "Error : Invalid Input Image ... Exiting !!!" << endl;
-        exit(FILE_ERROR);
+        #if RELEASE
+            logger->printLog("Error : Invalid Input Image ... Exiting !!!");
+            exit(FILE_ERROR);
+        #else
+            cerr << endl << "Error : Invalid Input Image ... Exiting !!!" << endl;
+            exit(FILE_ERROR);
+        #endif
     }
 
     // Input and Output File
@@ -111,35 +139,30 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     #endif
 
     // Load Images
-    cv::Mat oldImage = loadImage(oldInputImage);
-    cv::Mat newImage = loadImage(newInputImage);
+    cv::Mat oldImage = imageUtils->loadImage(oldInputImage);
+    cv::Mat newImage = imageUtils->loadImage(newInputImage);
 
-    // Empty Output Image => CV_8UC3 = 3-channel RGB Image
+    //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
 
-    // CPU Change Detection
-    // clock_t start = getClockTime();
-    // {
-    //     __changeDetection(&oldImage, &newImage, &outputImage);
-    // }
-    // clock_t end = getClockTime();
-    // double result = getExecutionTime(start, end);
-    // cout << endl << "Clock Result = " << result << endl;
+    sdkStartTimer(&cpuTimer);
+    {   
+        //* Image Denoising using Gaussian Blur
+    
+        //* Old Image
+    
 
-    StopWatchInterface *timer = NULL;
+        //* New Image
+        
 
-    sdkCreateTimer(&timer);
-    sdkStartTimer(&timer);
-    {
-        __changeDetection(&oldImage, &newImage, &outputImage);
+        //* CPU Change Detection
+        __changeDetectionKernel(&oldImage, &newImage, &outputImage, 60, multiThreading, threadCount);
     }
-    sdkStopTimer(&timer);
-    double result = sdkGetTimerValue(&timer) / 1000.0;
-    sdkDeleteTimer(&timer);
-    timer = NULL;
+    sdkStopTimer(&cpuTimer);
+    double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
     
     // Save Image
-    saveImage(outputImagePath, outputImage);
+    imageUtils->saveImage(outputImagePath, outputImage);
 
     outputImage.release();
     newImage.release();
@@ -148,3 +171,18 @@ double cpuDetectChanges(string oldInputImage, string newInputImage, string outpu
     return result;
 }
 
+CPUChangeDetection::~CPUChangeDetection(void)
+{
+    // Code
+    sdkDeleteTimer(&cpuTimer);
+    cpuTimer = nullptr;
+
+    delete denoiser;
+    denoiser = nullptr;
+    
+    delete imageUtils;
+    imageUtils = nullptr;
+
+    delete logger;
+    logger = nullptr;
+}

@@ -1,6 +1,6 @@
 #include "../../include/Common/Logger.hpp"
 
-void Logger::initialize(void)
+Logger::Logger(void)
 {
     // Code
     logFile = fopen("./logs/Log.txt", "a+");
@@ -43,11 +43,12 @@ string Logger::getCurrentTime(void)
     return strTime;
 }
 
-void Logger::uninitialize(void)
+Logger::~Logger(void)
 {
     // Code
     if (logFile)
     {
+        printLog("Log File Closed ...");
         fclose(logFile);
         logFile = nullptr;
     }

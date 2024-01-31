@@ -1,35 +1,38 @@
-#include "../include/Common/Logger.hpp"
 #include "../include/ChangeDetection/ChangeDetection.hpp"
 
 int main(int argc, char **argv)
 {
     // Code
-    Logger *logger = nullptr;
+    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection();
 
-    logger = new Logger();
-    
-    logger->initialize();
-    logger->printLog("C++ Log Test : Linux...");
+    #if !RELEASE
+        cout << endl << "----------" << endl << "DEBUG MODE" << endl << "----------" << endl;
+    #endif
 
-    double cpuTime = cpuDetectChanges(
+    //* Single-Threaded
+    // double cpuTime = cpuChangeDetector->detectChanges(
+    //     "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-1.jpg",
+    //     "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-2.jpg",
+    //     "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output",
+    //     false,
+    //     0
+    // );
+    // cout << endl << "Time Required Without Multi-Threading : " << cpuTime << " seconds" << endl;
+
+    //* Multi-threaded
+    int threadCount = getThreadCount();
+
+    double cpuTime = cpuChangeDetector->detectChanges(
         "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-1.jpg",
         "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-2.jpg",
-        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output"
+        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output",
+        true,
+        threadCount
     );
+    cout << endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << endl;
 
-    cout << endl << "Time Required : " << cpuTime << " seconds" << endl;
-
-    // int threads = get_num_threads();
-    // cout << endl << "Threads = " << threads << endl;
-    // #pragma omp parallel for num_threads(threads)
-    // for (int i = 1; i <= 100; i++) 
-    // {
-    //     int tid = omp_get_thread_num();
-    //     printf("The thread %d  executes i = %d\n", tid, i);
-    // }
-
-    logger->uninitialize();
-    logger = nullptr;
+    delete cpuChangeDetector;
+    cpuChangeDetector = nullptr;
 
     return 0;
 }
