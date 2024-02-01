@@ -1,6 +1,6 @@
 OPENCV_INCLUDE_PATH=/usr/include/opencv4
 
-SHARED_LIB=true
+SHARED_LIB=false
 
 if [ $SHARED_LIB == false ]
 then

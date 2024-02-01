@@ -23,8 +23,8 @@ int main(int argc, char **argv)
     int threadCount = getThreadCount();
 
     double cpuTime = cpuChangeDetector->detectChanges(
-        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-1.jpg",
-        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-2.jpg",
+        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/Dubai_1.jpg",
+        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/Dubai_2.jpg",
         "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output",
         true,
         threadCount
