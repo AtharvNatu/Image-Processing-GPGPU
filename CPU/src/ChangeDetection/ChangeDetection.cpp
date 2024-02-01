@@ -7,6 +7,7 @@ CPUChangeDetection::CPUChangeDetection(void)
     logger = Logger::getInstance("./logs/IPUG.log");
     imageUtils = new ImageUtils();
     denoiser = new Denoising();
+    binarizer = new OtsuBinarizer();
 
     sdkCreateTimer(&cpuTimer);
 }
@@ -48,16 +49,16 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
                     // Vec3b => B G R
 
                     // 255 255 255 => For Black and White Image
-                    outputImage->at<Vec3b>(i, j)[0] = 0;
-                    outputImage->at<Vec3b>(i, j)[1] = 0;
+                    outputImage->at<Vec3b>(i, j)[0] = 255;
+                    outputImage->at<Vec3b>(i, j)[1] = 255;
                     outputImage->at<Vec3b>(i, j)[2] = 255;  
                 }
-                else
-                {
-                    outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
-                    outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
-                    outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
-                }
+                // else
+                // {
+                //     outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
+                //     outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
+                //     outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
+                // }
             }
         }
     }
@@ -155,14 +156,21 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
         //* New Image
         
 
-        //* CPU Change Detection
-        __changeDetectionKernel(&oldImage, &newImage, &outputImage, 60, multiThreading, threadCount);
+        //* CPU Change Detection 
+        __changeDetectionKernel(
+            &oldImage, 
+            &newImage, 
+            &outputImage, 
+            binarizer->getThreshold(&newImage), //* Otsu Thresholding
+            multiThreading, 
+            threadCount
+        );
     }
     sdkStopTimer(&cpuTimer);
     double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
     
     // Save Image
-    imageUtils->saveImage(outputImagePath, outputImage);
+    imageUtils->saveImage(outputImagePath, &outputImage);
 
     outputImage.release();
     newImage.release();
@@ -176,6 +184,9 @@ CPUChangeDetection::~CPUChangeDetection(void)
     // Code
     sdkDeleteTimer(&cpuTimer);
     cpuTimer = nullptr;
+
+    delete binarizer;
+    binarizer = nullptr;
 
     delete denoiser;
     denoiser = nullptr;

@@ -21,10 +21,10 @@ cv::Mat ImageUtils::loadImage(string imagePath)
     return image;
 }
 
-void ImageUtils::saveImage(string imagePath, cv::Mat image)
+void ImageUtils::saveImage(string imagePath, cv::Mat *image)
 {
     // Code
-    if (!cv::imwrite(cv::String(imagePath), image))
+    if (!cv::imwrite(cv::String(imagePath), *image))
     {
         #if RELEASE
             Logger *logger = Logger::getInstance("./logs/IPUG.log");
@@ -37,3 +37,5 @@ void ImageUtils::saveImage(string imagePath, cv::Mat image)
         #endif 
     }
 }
+
+

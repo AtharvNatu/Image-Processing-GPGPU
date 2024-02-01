@@ -9,6 +9,7 @@
 
 #include "ImageUtils.hpp"
 #include "Denoising.hpp"
+#include "OtsuBinarizer.hpp"
 
 #include "../Common/Threading.hpp"
 #include "../Common/Macros.hpp"
@@ -25,6 +26,7 @@ class CPUChangeDetection
         StopWatchInterface *cpuTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
         Denoising *denoiser = nullptr;
+        OtsuBinarizer *binarizer = nullptr;
 
         void __changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threshold, bool multiThreading, int threadCount);
 

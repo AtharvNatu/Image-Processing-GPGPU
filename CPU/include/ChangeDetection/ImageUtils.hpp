@@ -15,6 +15,6 @@ class ImageUtils
     public:
         // Image Functions
         cv::Mat loadImage(string imagePath);
-        void saveImage(string imagePath, cv::Mat image);
+        void saveImage(string imagePath, cv::Mat* image);
 };
 

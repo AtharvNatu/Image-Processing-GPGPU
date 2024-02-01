@@ -40,15 +40,15 @@ else
     -DRELEASE
 
     echo "Creating Dynamic Library ..."
-    g++ -shared -o libIUG-CPU.dylib *.o \
+    g++ -shared -o libIPUG-CPU.dylib *.o \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
     -lomp -lm
 
-    cp libIUG-CPU.dylib ../
+    cp libIPUG-CPU.dylib ../
 
-    echo "Generated Library : libIUG-CPU.dylib ..." 
+    echo "Generated Library : libIPUG-CPU.dylib ..." 
 
     cd ..
 fi

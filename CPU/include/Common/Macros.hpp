@@ -12,7 +12,8 @@
     #include <windows.h>
 #endif
 
-#define GAUSSIAN_KERNEL_SIZE 3
+#define GAUSSIAN_KERNEL_SIZE    3
+#define MAX_PIXEL_VALUE         256
 
 enum ERRORS
 {
