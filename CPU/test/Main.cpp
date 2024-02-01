@@ -6,7 +6,7 @@ int main(int argc, char **argv)
     CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection();
 
     #if !RELEASE
-        cout << endl << "----------" << endl << "DEBUG MODE" << endl << "----------" << endl;
+        cout << endl << "--------------------" << endl << "DEBUG MODE" << endl << "--------------------" << endl;
     #endif
 
     //* Single-Threaded

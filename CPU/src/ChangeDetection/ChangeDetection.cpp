@@ -4,7 +4,7 @@
 CPUChangeDetection::CPUChangeDetection(void)
 {
     // Code
-    logger = new Logger();
+    logger = Logger::getInstance("./logs/IPUG.log");
     imageUtils = new ImageUtils();
     denoiser = new Denoising();
 
@@ -183,6 +183,5 @@ CPUChangeDetection::~CPUChangeDetection(void)
     delete imageUtils;
     imageUtils = nullptr;
 
-    delete logger;
-    logger = nullptr;
+    logger->deleteInstance();
 }

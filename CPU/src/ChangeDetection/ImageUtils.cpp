@@ -8,10 +8,9 @@ cv::Mat ImageUtils::loadImage(string imagePath)
     if (!image.data)
     {
         #if RELEASE
-            Logger *logger = new Logger();
+            Logger *logger = Logger::getInstance("./logs/IPUG.log");
             logger->printLog("Error : Failed To Load Image ... Exiting !!!");
-            delete logger;
-            logger = nullptr;
+            logger->deleteInstance();
             exit(OPENCV_ERROR);
         #else
             cerr << endl << "Error : Failed To Load Image ... Exiting !!!" << endl;
@@ -28,10 +27,9 @@ void ImageUtils::saveImage(string imagePath, cv::Mat image)
     if (!cv::imwrite(cv::String(imagePath), image))
     {
         #if RELEASE
-            Logger *logger = new Logger();
+            Logger *logger = Logger::getInstance("./logs/IPUG.log");
             logger->printLog("Error : Failed To Save Image ... Exiting !!!");
-            delete logger;
-            logger = nullptr;
+            logger->deleteInstance();
             exit(OPENCV_ERROR);
         #else
             cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;

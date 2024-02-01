@@ -15,15 +15,27 @@
 
 class Logger
 {
-    // Member Variables
     private:
         FILE *logFile = nullptr;
-
-    // Member Function Declarations
-    public:
-        Logger(void);
-        ~Logger(void);
-        void printLog(const char* fmt, ...);
         string getCurrentTime(void);
+
+    protected:
+        Logger(void);
+        static Logger* _logger;
+
+    public:
+        //* Non-cloneable
+        Logger(Logger &obj) = delete;
+
+        //* Non-assignable
+        void operator = (const Logger &) = delete;
+
+        Logger(const string file);
+        ~Logger(void);
+
+        // Member Function Declarations
+        static Logger* getInstance(const string file);
+        void printLog(const char* fmt, ...);
+        void deleteInstance(void);
 };
 
