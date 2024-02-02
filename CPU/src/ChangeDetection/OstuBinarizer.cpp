@@ -11,10 +11,12 @@ vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
 
     // Code
     if (inputImage->isContinuous())
-        imageVector.assign(
-            inputImage->data, 
-            inputImage->data + inputImage->total() * inputImage->channels()
-        );
+        // imageVector.assign(
+        //     inputImage->data, 
+        //     inputImage->data + inputImage->total() * inputImage->channels()
+        // );
+       { cout << endl << "Continuous" << endl;
+        imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend); }
     else
     {
         for (int i = 0; i < inputImage->rows; i++)
@@ -22,7 +24,7 @@ vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
             imageVector.insert(
                 imageVector.end(), 
                 inputImage->ptr<uchar_t>(i), 
-                inputImage->ptr<uchar_t>(i) + inputImage->cols * inputImage->channels()
+                inputImage->ptr<uchar_t>(i) + inputImage->cols
             );
         }
     }
@@ -39,11 +41,11 @@ vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
     for (vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
         histogram[j] = histogram[j] / totalPixels;
 
-    double value = 0;
-	for (int i = 0; i < MAX_PIXEL_VALUE; i++) {
-		value = histogram[i];
-		printf("\tPixel value %d -> %.5f\n", i, value);
-	}
+    // double value = 0;
+	// for (int i = 0; i < MAX_PIXEL_VALUE; i++) {
+	// 	value = histogram[i];
+	// 	printf("\tPixel value %d -> %.5f\n", i, value);
+	// }
 
     return histogram;
 }
