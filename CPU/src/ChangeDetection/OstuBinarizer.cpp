@@ -82,6 +82,8 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage)
             maxVariance = betweenClassVariance;
         }
     }
+
+    cout << endl << "Threshold : " << threshold << endl;
    
     return threshold;
 }
