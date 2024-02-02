@@ -15,8 +15,7 @@ vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
         //     inputImage->data, 
         //     inputImage->data + inputImage->total() * inputImage->channels()
         // );
-       { cout << endl << "Continuous" << endl;
-        imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend); }
+        imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
     else
     {
         for (int i = 0; i < inputImage->rows; i++)
