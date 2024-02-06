@@ -133,7 +133,7 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
     }
 }
 
-double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string newInputImage, std::string outputPath, bool grayscale, bool multiThreading, int threadCount)
+double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     cv::String outputImagePath;
@@ -141,7 +141,7 @@ double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string 
     // Code
 
     //* Check Validity of Input Images
-    if (!std::filesystem::exists(oldInputImage) || !std::filesystem::exists(newInputImage))
+    if (!std::filesystem::exists(oldImagePath) || !std::filesystem::exists(newImagePath))
     {
         #if RELEASE
             logger->printLog("Error : Invalid Input Image ... Exiting !!!");
@@ -153,10 +153,10 @@ double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string 
     }
 
     // Input and Output File
-    std::filesystem::path oldFilePath = std::filesystem::path(oldInputImage).stem();
-    std::filesystem::path newFilePath = std::filesystem::path(newInputImage).stem();
+    std::filesystem::path oldFilePath = std::filesystem::path(oldImagePath).stem();
+    std::filesystem::path newFilePath = std::filesystem::path(newImagePath).stem();
 
-    std::string outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes" + std::filesystem::path(oldInputImage).extension().string());
+    std::string outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes" + std::filesystem::path(oldImagePath).extension().string());
 
     #if (OS == 1)
         outputImagePath = outputPath + ("\\" + outputFileName);
@@ -165,8 +165,8 @@ double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string 
     #endif
 
     // Load Images
-    cv::Mat oldImage = imageUtils->loadImage(oldInputImage);
-    cv::Mat newImage = imageUtils->loadImage(newInputImage);
+    cv::Mat oldImage = imageUtils->loadImage(oldImagePath);
+    cv::Mat newImage = imageUtils->loadImage(newImagePath);
 
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));

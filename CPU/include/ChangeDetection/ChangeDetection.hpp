@@ -7,14 +7,14 @@
 #include <opencv2/opencv.hpp>
 #include <omp.h>
 
+#include "../Common/Macros.hpp"
+#include "../Common/Threading.hpp"
+#include "../Common/Logger.hpp"
+#include "../Common/helper_timer.h"
+
 #include "ImageUtils.hpp"
 #include "Denoising.hpp"
 #include "OtsuBinarizer.hpp"
-
-#include "../Common/Threading.hpp"
-#include "../Common/Macros.hpp"
-#include "../Common/Logger.hpp"
-#include "../Common/helper_timer.h"
 
 
 class CPUChangeDetection
@@ -46,14 +46,14 @@ class CPUChangeDetection
         ~CPUChangeDetection(void);
 
         /// @brief Change Detection Wrapper Function
-        /// @param oldInputImage Image with old timestamp
-        /// @param newInputImage Image with new timestamp
+        /// @param oldImagePath Image with old timestamp
+        /// @param newImagePath Image with new timestamp
         /// @param outputPath Directory path to store output image
         /// @param grayscale  Output Image format : Grayscale (RED Color Changes) or Binary (WHITE Color Changes)
         /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
         /// @param threadCount Thread Count generated automatically as per user's system
         /// @return Time required for the kernel to execute on CPU in seconds
-        double detectChanges(std::string oldInputImage, std::string newInputImage, std::string outputPath,  bool grayscale, bool multiThreading, int threadCount);
+        double detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale, bool multiThreading, int threadCount);
 };
 
 

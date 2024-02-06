@@ -14,10 +14,12 @@ int main(int argc, char **argv)
     //     std::string(argv[1]),
     //     std::string(argv[2]),
     //     std::string(argv[3]),
+    //     true,
     //     false,
     //     0
     // );
-    // cout << endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << endl;
+    
+    // std::cout << std::endl << "Time Required Using Single Thread : " << std::cpuTime << " seconds" << std::endl;
 
     //* Multi-threaded
     int threadCount = getThreadCount();
@@ -27,9 +29,10 @@ int main(int argc, char **argv)
         std::string(argv[2]),
         std::string(argv[3]),
         true,
-        threadCount,
-        true
+        true,
+        threadCount  
     );
+    
     std::cout << std::endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << std::endl;
 
     delete cpuChangeDetector;

@@ -1,32 +1,49 @@
 #include "../include/ChangeDetection/ChangeDetection.hpp"
 
-extern "C" double cpuChangeDetection(void)
+extern "C" double cpuChangeDetection(std::string oldImagePath, std::string newImagePath, std::string outputImagePath, bool grayscale, bool multiThreading)
 {
     // Code
-    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection();
+    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("./logs/IPUG.log");
+    double cpuTime = 0;
 
-     //* Single-Threaded
-    // double cpuTime = cpuChangeDetector->detectChanges(
-    //     "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-1.jpg",
-    //     "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-2.jpg",
-    //     "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output",
-    //     false,
-    //     0
-    // );
-    // cout << endl << "Time Required Without Multi-Threading : " << cpuTime << " seconds" << endl;
+    #if !RELEASE
+        std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
+    #endif
+
+    
 
     //* Multi-threaded
-    int threadCount = getThreadCount();
+    if (multiThreading)
+    {
+        int threadCount = getThreadCount();
 
-    double cpuTime = cpuChangeDetector->detectChanges(
-        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-1.jpg",
-        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/input/petal-2.jpg",
-        "/home/atharv/Desktop/Internship/Code/Image-Processing-GPGPU/CPU/images/output",
-        true,
-        threadCount
-    );
-    cout << endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << endl;
+        cpuTime = cpuChangeDetector->detectChanges(
+            oldImagePath,
+            newImagePath,
+            outputImagePath,
+            grayscale,
+            true,
+            threadCount  
+        );
 
+        std::cout << std::endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << std::endl;
+    }
+
+    //* Single-Threaded
+    // else
+    // {
+    //     cpuTime = cpuChangeDetector->detectChanges(
+    //         oldImagePath,
+    //         newImagePath,
+    //         outputImagePath,
+    //         grayscale,
+    //         false,
+    //         0  
+    //     );
+
+    //     std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
+    // }
+    
     delete cpuChangeDetector;
     cpuChangeDetector = nullptr;
 
