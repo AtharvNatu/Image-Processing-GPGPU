@@ -5,3 +5,5 @@
 *.bmp
 *.txt
 
+App
+/CPU/bin/*
