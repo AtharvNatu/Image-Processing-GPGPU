@@ -1,0 +1,6 @@
+*.o
+*.obj
+*.png
+*.bmp
+*.jpg
+*.DS_STORE
