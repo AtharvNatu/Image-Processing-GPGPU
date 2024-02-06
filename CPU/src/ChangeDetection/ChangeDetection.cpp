@@ -1,10 +1,10 @@
 #include "../../include/ChangeDetection/ChangeDetection.hpp"
 
 // Member Function Definitions
-CPUChangeDetection::CPUChangeDetection(void)
+CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
 {
     // Code
-    logger = Logger::getInstance("./logs/IPUG.log");
+    logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
     denoiser = new Denoising();
     binarizer = new OtsuBinarizer();
@@ -12,7 +12,7 @@ CPUChangeDetection::CPUChangeDetection(void)
     sdkCreateTimer(&cpuTimer);
 }
 
-void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, int threshold, bool multiThreading, int threadCount)
+void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, bool grayscale, int threshold, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
@@ -44,21 +44,34 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
 
                 difference = abs(oldGreyValue - newGreyValue);
 
-                if (difference >= threshold)
+                //* Grayscale Image with Changes marked in RED color
+                if (grayscale)
                 {
-                    // Vec3b => B G R
-
-                    // 255 255 255 => For Black and White Image
-                    outputImage->at<cv::Vec3b>(i, j)[0] = 255;
-                    outputImage->at<cv::Vec3b>(i, j)[1] = 255;
-                    outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
+                    if (difference >= threshold)
+                    {
+                        outputImage->at<cv::Vec3b>(i, j)[0] = 0;
+                        outputImage->at<cv::Vec3b>(i, j)[1] = 0;
+                        outputImage->at<cv::Vec3b>(i, j)[2] = 255;
+                    }
+                    else
+                    {
+                        outputImage->at<cv::Vec3b>(i, j)[0] = oldGreyValue;
+                        outputImage->at<cv::Vec3b>(i, j)[1] = oldGreyValue;
+                        outputImage->at<cv::Vec3b>(i, j)[2] = oldGreyValue;
+                    }
                 }
-                // else
-                // {
-                //     outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
-                //     outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
-                //     outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
-                // }
+
+                //* Binary Image with Changes marked in WHITE color
+                else
+                {
+                    if (difference >= threshold)
+                    {
+                        outputImage->at<cv::Vec3b>(i, j)[0] = 255;
+                        outputImage->at<cv::Vec3b>(i, j)[1] = 255;
+                        outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
+                    }
+                        
+                }
             }
         }
     }
@@ -87,28 +100,40 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
 
                 difference = abs(oldGreyValue - newGreyValue);
 
-                if (difference >= threshold)
+                //* Grayscale Image with Changes marked in RED color
+                if (grayscale)
                 {
-                    // Vec3b => B G R
-
-                    // 255 255 255 => For Black and White Image
-                    outputImage->at<cv::Vec3b>(i, j)[0] = 0;
-                    outputImage->at<cv::Vec3b>(i, j)[1] = 0;
-                    outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
+                    if (difference >= threshold)
+                    {
+                        outputImage->at<cv::Vec3b>(i, j)[0] = 0;
+                        outputImage->at<cv::Vec3b>(i, j)[1] = 0;
+                        outputImage->at<cv::Vec3b>(i, j)[2] = 255;
+                    }
+                    else
+                    {
+                        outputImage->at<cv::Vec3b>(i, j)[0] = oldGreyValue;
+                        outputImage->at<cv::Vec3b>(i, j)[1] = oldGreyValue;
+                        outputImage->at<cv::Vec3b>(i, j)[2] = oldGreyValue;
+                    }
                 }
+
+                //* Binary Image with Changes marked in WHITE color
                 else
                 {
-                    outputImage->at<cv::Vec3b>(i, j)[0] = oldGreyValue;
-                    outputImage->at<cv::Vec3b>(i, j)[1] = oldGreyValue;
-                    outputImage->at<cv::Vec3b>(i, j)[2] = oldGreyValue;
+                    if (difference >= threshold)
+                    {
+                        outputImage->at<cv::Vec3b>(i, j)[0] = 255;
+                        outputImage->at<cv::Vec3b>(i, j)[1] = 255;
+                        outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
+                    }
+                        
                 }
             }
         }
     }
-    
 }
 
-double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string newInputImage, std::string outputPath, bool multiThreading, int threadCount)
+double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string newInputImage, std::string outputPath, bool grayscale, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     cv::String outputImagePath;
@@ -160,8 +185,9 @@ double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string 
         __changeDetectionKernel(
             &oldImage, 
             &newImage, 
-            &outputImage, 
-            binarizer->getThreshold(&newImage), //* Otsu Thresholding
+            &outputImage,
+            grayscale,
+            binarizer->getThreshold(&newImage),
             multiThreading, 
             threadCount
         );

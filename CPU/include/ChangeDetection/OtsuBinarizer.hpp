@@ -11,8 +11,18 @@
 class OtsuBinarizer
 {
     public:
+        
+        /// @brief Generate Histogram From Input Image
+        /// @param inputImage cv::Mat Pointer to input image
+        /// @return STL Vector containing histogram values
         std::vector<double> getHistogram(cv::Mat* inputImage);
+
+
+        /// @brief Get Threshold From Input Image
+        /// @param inputImage cv::Mat Pointer to input image
+        /// @return Integer threshold value for the image
         int getThreshold(cv::Mat* inputImage);
+        
         // void binarize(cv::Mat* inputImage);
 };
 
