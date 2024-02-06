@@ -30,7 +30,7 @@ int main(int argc, char **argv)
         std::string(argv[3]),
         true,
         true,
-        threadCount  
+        threadCount
     );
     
     std::cout << std::endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << std::endl;
