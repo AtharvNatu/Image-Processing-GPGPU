@@ -42,8 +42,8 @@ else
     -I ${OPENCV_INCLUDE_PATH} \
     -DRELEASE
 
-    echo "Creating Dynamic Library ..."
-    g++ -shared -o libIPUG-CPU.dylib *.o \
+    echo "Creating Shared Object ..."
+    g++ -shared -o libIPUG-CPU.so *.o \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
@@ -51,7 +51,7 @@ else
 
     cp libIPUG-CPU.dylib ../
 
-    echo "Generated Library : libIPUG-CPU.dylib ..." 
+    echo "Generated Shared Object : libIPUG-CPU.so ..." 
 
     cd ..
 fi
