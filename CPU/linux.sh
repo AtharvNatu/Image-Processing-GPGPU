@@ -25,7 +25,10 @@ then
     cd ..
 
     echo "Running Executable ... "
-    ./App
+    ./App \
+    ./images/input/1024_old.png \
+    ./images/input/1024_new.png \
+    ./images/output
 
 else
     clear

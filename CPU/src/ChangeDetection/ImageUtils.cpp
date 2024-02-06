@@ -1,7 +1,7 @@
 #include "../../include/ChangeDetection/ImageUtils.hpp"
 
 // Member Function Definitions
-cv::Mat ImageUtils::loadImage(string imagePath)
+cv::Mat ImageUtils::loadImage(std::string imagePath)
 {
     // Code
     cv::Mat image = cv::imread(cv::String(imagePath));
@@ -13,7 +13,7 @@ cv::Mat ImageUtils::loadImage(string imagePath)
             logger->deleteInstance();
             exit(OPENCV_ERROR);
         #else
-            cerr << endl << "Error : Failed To Load Image ... Exiting !!!" << endl;
+            std::cerr << std::endl << "Error : Failed To Load Image ... Exiting !!!" << std::endl;
             exit(OPENCV_ERROR);
         #endif 
     }
@@ -21,7 +21,7 @@ cv::Mat ImageUtils::loadImage(string imagePath)
     return image;
 }
 
-void ImageUtils::saveImage(string imagePath, cv::Mat *image)
+void ImageUtils::saveImage(std::string imagePath, cv::Mat *image)
 {
     // Code
     if (!cv::imwrite(cv::String(imagePath), *image))
@@ -32,7 +32,7 @@ void ImageUtils::saveImage(string imagePath, cv::Mat *image)
             logger->deleteInstance();
             exit(OPENCV_ERROR);
         #else
-            cerr << endl << "Error : Failed To Save Image ... Exiting !!!" << endl;
+            std::cerr << std::endl << "Error : Failed To Save Image ... Exiting !!!" << std::endl;
             exit(OPENCV_ERROR);
         #endif 
     }

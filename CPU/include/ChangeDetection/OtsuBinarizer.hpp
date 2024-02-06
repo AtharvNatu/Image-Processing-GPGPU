@@ -8,8 +8,6 @@
 
 #include "../Common/Macros.hpp"
 
-using namespace std;
-
 class OtsuBinarizer
 {
     public:

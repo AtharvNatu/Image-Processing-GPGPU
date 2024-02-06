@@ -8,13 +8,11 @@
 #include "../Common/Macros.hpp"
 #include "../Common/Logger.hpp"
 
-using namespace std;
-
 class ImageUtils
 {
     public:
         // Image Functions
-        cv::Mat loadImage(string imagePath);
-        void saveImage(string imagePath, cv::Mat* image);
+        cv::Mat loadImage(std::string imagePath);
+        void saveImage(std::string imagePath, cv::Mat* image);
 };
 

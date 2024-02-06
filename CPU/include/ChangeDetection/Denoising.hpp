@@ -9,8 +9,6 @@
 #include "../Common/Macros.hpp"
 #include "../Common/Logger.hpp"
 
-using namespace std;
-
 class Denoising
 {
     private:

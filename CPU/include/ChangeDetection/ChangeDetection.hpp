@@ -16,8 +16,6 @@
 #include "../Common/Logger.hpp"
 #include "../Common/helper_timer.h"
 
-using namespace std;
-using namespace cv;
 
 class CPUChangeDetection
 {
@@ -37,7 +35,7 @@ class CPUChangeDetection
     public:
         CPUChangeDetection(void);
         ~CPUChangeDetection(void);
-        double detectChanges(string oldInputImage, string newInputImage, string outputPath, bool multiThreading, int threadCount);
+        double detectChanges(std::string oldInputImage, std::string newInputImage, std::string outputPath, bool multiThreading, int threadCount);
 };
 
 

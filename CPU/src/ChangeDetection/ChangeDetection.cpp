@@ -26,8 +26,8 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
             for (int j = 0; j < oldImage->cols; j++)
             {
                 // Get RGB Vector for current pixel
-                Vec3b oldIntensityVector = oldImage->at<Vec3b>(i, j);
-                Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
+                cv::Vec3b oldIntensityVector = oldImage->at<cv::Vec3b>(i, j);
+                cv::Vec3b newIntensityVector = newImage->at<cv::Vec3b>(i, j);
 
                 // Y = 0.299 * R + 0.587 * G + 0.114 * B
                 oldGreyValue = static_cast<uchar_t>(
@@ -37,9 +37,9 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
                 );
 
                 newGreyValue = static_cast<uchar_t>(
-                    (0.299 * newIntenstiyVector[2]) + 
-                    (0.587 * newIntenstiyVector[1]) + 
-                    (0.114 * newIntenstiyVector[0])
+                    (0.299 * newIntensityVector[2]) + 
+                    (0.587 * newIntensityVector[1]) + 
+                    (0.114 * newIntensityVector[0])
                 );
 
                 difference = abs(oldGreyValue - newGreyValue);
@@ -49,9 +49,9 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
                     // Vec3b => B G R
 
                     // 255 255 255 => For Black and White Image
-                    outputImage->at<Vec3b>(i, j)[0] = 255;
-                    outputImage->at<Vec3b>(i, j)[1] = 255;
-                    outputImage->at<Vec3b>(i, j)[2] = 255;  
+                    outputImage->at<cv::Vec3b>(i, j)[0] = 255;
+                    outputImage->at<cv::Vec3b>(i, j)[1] = 255;
+                    outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
                 }
                 // else
                 // {
@@ -69,8 +69,8 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
             for (int j = 0; j < oldImage->cols; j++)
             {
                 // Get RGB Vector for current pixel
-                Vec3b oldIntensityVector = oldImage->at<Vec3b>(i, j);
-                Vec3b newIntenstiyVector = newImage->at<Vec3b>(i, j);
+                cv::Vec3b oldIntensityVector = oldImage->at<cv::Vec3b>(i, j);
+                cv::Vec3b newIntensityVector = newImage->at<cv::Vec3b>(i, j);
 
                 // Y = 0.299 * R + 0.587 * G + 0.114 * B
                 oldGreyValue = static_cast<uchar_t>(
@@ -80,9 +80,9 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
                 );
 
                 newGreyValue = static_cast<uchar_t>(
-                    (0.299 * newIntenstiyVector[2]) + 
-                    (0.587 * newIntenstiyVector[1]) + 
-                    (0.114 * newIntenstiyVector[0])
+                    (0.299 * newIntensityVector[2]) + 
+                    (0.587 * newIntensityVector[1]) + 
+                    (0.114 * newIntensityVector[0])
                 );
 
                 difference = abs(oldGreyValue - newGreyValue);
@@ -92,15 +92,15 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
                     // Vec3b => B G R
 
                     // 255 255 255 => For Black and White Image
-                    outputImage->at<Vec3b>(i, j)[0] = 0;
-                    outputImage->at<Vec3b>(i, j)[1] = 0;
-                    outputImage->at<Vec3b>(i, j)[2] = 255;  
+                    outputImage->at<cv::Vec3b>(i, j)[0] = 0;
+                    outputImage->at<cv::Vec3b>(i, j)[1] = 0;
+                    outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
                 }
                 else
                 {
-                    outputImage->at<Vec3b>(i, j)[0] = oldGreyValue;
-                    outputImage->at<Vec3b>(i, j)[1] = oldGreyValue;
-                    outputImage->at<Vec3b>(i, j)[2] = oldGreyValue;
+                    outputImage->at<cv::Vec3b>(i, j)[0] = oldGreyValue;
+                    outputImage->at<cv::Vec3b>(i, j)[1] = oldGreyValue;
+                    outputImage->at<cv::Vec3b>(i, j)[2] = oldGreyValue;
                 }
             }
         }
@@ -108,7 +108,7 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
     
 }
 
-double CPUChangeDetection::detectChanges(string oldInputImage, string newInputImage, string outputPath, bool multiThreading, int threadCount)
+double CPUChangeDetection::detectChanges(std::string oldInputImage, std::string newInputImage, std::string outputPath, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     cv::String outputImagePath;
@@ -116,22 +116,22 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
     // Code
 
     //* Check Validity of Input Images
-    if (!filesystem::exists(oldInputImage) || !filesystem::exists(newInputImage))
+    if (!std::filesystem::exists(oldInputImage) || !std::filesystem::exists(newInputImage))
     {
         #if RELEASE
             logger->printLog("Error : Invalid Input Image ... Exiting !!!");
             exit(FILE_ERROR);
         #else
-            cerr << endl << "Error : Invalid Input Image ... Exiting !!!" << endl;
+            std::cerr << std::endl << "Error : Invalid Input Image ... Exiting !!!" << std::endl;
             exit(FILE_ERROR);
         #endif
     }
 
     // Input and Output File
-    filesystem::path oldFilePath = filesystem::path(oldInputImage).stem();
-    filesystem::path newFilePath = filesystem::path(newInputImage).stem();
+    std::filesystem::path oldFilePath = std::filesystem::path(oldInputImage).stem();
+    std::filesystem::path newFilePath = std::filesystem::path(newInputImage).stem();
 
-    string outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes" + filesystem::path(oldInputImage).extension().string());
+    std::string outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes" + std::filesystem::path(oldInputImage).extension().string());
 
     #if (OS == 1)
         outputImagePath = outputPath + ("\\" + outputFileName);
@@ -144,7 +144,7 @@ double CPUChangeDetection::detectChanges(string oldInputImage, string newInputIm
     cv::Mat newImage = imageUtils->loadImage(newInputImage);
 
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
-    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, Scalar(0, 0, 0));
+    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
     sdkStartTimer(&cpuTimer);
     {   

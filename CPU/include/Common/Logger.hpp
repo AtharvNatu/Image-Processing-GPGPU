@@ -7,17 +7,12 @@
 
 #include "Macros.hpp"
 
-#ifndef _STD_NS_    // namespace std
-    #define _STD_NS_
-    using namespace std;
-#endif              // namespace std
-
 
 class Logger
 {
     private:
         FILE *logFile = nullptr;
-        string getCurrentTime(void);
+        std::string getCurrentTime(void);
 
     protected:
         Logger(void);
@@ -30,11 +25,11 @@ class Logger
         //* Non-assignable
         void operator = (const Logger &) = delete;
 
-        Logger(const string file);
+        Logger(const std::string file);
         ~Logger(void);
 
         // Member Function Declarations
-        static Logger* getInstance(const string file);
+        static Logger* getInstance(const std::string file);
         void printLog(const char* fmt, ...);
         void deleteInstance(void);
 };

@@ -1,13 +1,13 @@
 #include "../../include/ChangeDetection/OtsuBinarizer.hpp"
 
 // Method Definitions
-vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
+std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
-    vector<double> histogram(MAX_PIXEL_VALUE);
-    vector<uchar_t> occurences(MAX_PIXEL_VALUE);
-    vector<uchar_t> imageVector;
+    std::vector<double> histogram(MAX_PIXEL_VALUE);
+    std::vector<uchar_t> occurences(MAX_PIXEL_VALUE);
+    std::vector<uchar_t> imageVector;
 
     // Code
     if (inputImage->isContinuous())
@@ -30,14 +30,14 @@ vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
 
     size_t totalPixels = imageVector.size();
 
-    for (vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
+    for (std::vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
     {
         pixelValue = imageVector[i];
         histogram[pixelValue]++;
     }
 
     //* Normalization
-    for (vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
+    for (std::vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
         histogram[j] = histogram[j] / totalPixels;
 
     // double value = 0;
@@ -61,7 +61,7 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage)
     double allProbabilitySum = 0, firstProbabilitySum = 0;
 
     // Code
-    vector<double> histogram = getHistogram(inputImage);
+    std::vector<double> histogram = getHistogram(inputImage);
 
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         allProbabilitySum += i * histogram[i];
@@ -84,7 +84,9 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage)
         }
     }
 
-    cout << endl << "Threshold : " << threshold << endl;
+    #if !RELEASE
+        std::cout << std::endl << "Threshold : " << threshold << std::endl;
+    #endif
    
     return threshold;
 }
