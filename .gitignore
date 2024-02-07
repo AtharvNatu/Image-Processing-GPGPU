@@ -4,6 +4,8 @@
 *.png
 *.bmp
 *.txt
+*.DS_STORE
 
-App
-/CPU/bin/*
+/CPU/bin/*.o
+/CPU/bin/*.obj
+
