@@ -25,6 +25,17 @@ CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
     sdkCreateTimer(&cpuTimer);
 }
 
+void CPUChangeDetection::normalizeImage(cv::Mat* image)
+{
+    // Code
+    double min = 0, max = 0;
+
+    cv::minMaxLoc(*image, &min, &max);
+
+    *image = *image - min;
+    image->convertTo(*image, CV_8U, 255.0 / (max - min));
+}
+
 void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, bool grayscale, int threshold, bool multiThreading, int threadCount)
 {
     // Variable Declarations
@@ -83,7 +94,6 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
                         outputImage->at<cv::Vec3b>(i, j)[1] = 255;
                         outputImage->at<cv::Vec3b>(i, j)[2] = 255;  
                     }
-                        
                 }
             }
         }
@@ -158,11 +168,11 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     {
         #if RELEASE
             logger->printLog("Error : Invalid Input Image ... Exiting !!!");
-            exit(FILE_ERROR);
         #else
             std::cerr << std::endl << "Error : Invalid Input Image ... Exiting !!!" << std::endl;
-            exit(FILE_ERROR);
         #endif
+
+        exit(FILE_ERROR);
     }
 
     // Input and Output File
@@ -181,30 +191,42 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     cv::Mat oldImage = imageUtils->loadImage(oldImagePath);
     cv::Mat newImage = imageUtils->loadImage(newImagePath);
 
+    //* 1. Preprocessing
+    if (oldImage.cols != newImage.cols || oldImage.rows != newImage.rows)
+    {
+        #if RELEASE
+            logger->printLog("Error : Invalid Spatial Resolution ... Input Images With Same Resolution ... Exiting !!!");     
+        #else
+            std::cerr << std::endl << "Error : Invalid Spatial Resolution ... Input Images With Same Resolution ... Exiting !!!" << std::endl;
+        #endif
+
+        newImage.release();
+        oldImage.release();
+
+        exit(FILE_ERROR);
+    }
+
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
     sdkStartTimer(&cpuTimer);
     {   
-        //* Image Denoising using Gaussian Blur
+        //* 2. Ostu Thresholding
+        int threshold = binarizer->getThreshold(&newImage, multiThreading, threadCount);
     
-        //* Old Image
-    
-
-        //* New Image
-        
-
-        //* CPU Change Detection 
-        // binarizer->getThreshold(&newImage, multiThreading, threadCount);
+        //* 3. Differencing
         __changeDetectionKernel(
             &oldImage, 
             &newImage, 
             &outputImage,
             grayscale,
-            binarizer->getThreshold(&newImage, multiThreading, threadCount),
+            threshold,
             multiThreading, 
             threadCount
         );
+
+        //* 4. Post-processing
+        denoiser->nlmDenoising(&outputImage);
     }
     sdkStopTimer(&cpuTimer);
     double result = sdkGetTimerValue(&cpuTimer) / 1000.0;

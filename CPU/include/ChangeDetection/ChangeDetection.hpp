@@ -63,6 +63,10 @@ class CPUChangeDetection
         /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
         /// @return Time required for the kernel to execute on CPU in seconds
         double detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale, bool multiThreading, int threadCount);
+
+        /// @brief Image Normalization
+        /// @param image Input Image Pointer to normalize
+        void normalizeImage(cv::Mat* image);
 };
 
 

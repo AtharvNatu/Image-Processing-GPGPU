@@ -11,11 +11,11 @@ cv::Mat ImageUtils::loadImage(std::string imagePath)
             Logger *logger = Logger::getInstance("./logs/IPUG.log");
             logger->printLog("Error : Failed To Load Image ... Exiting !!!");
             logger->deleteInstance();
-            exit(OPENCV_ERROR);
         #else
             std::cerr << std::endl << "Error : Failed To Load Image ... Exiting !!!" << std::endl;
-            exit(OPENCV_ERROR);
         #endif 
+
+        exit(OPENCV_ERROR);
     }
 
     return image;
@@ -30,11 +30,11 @@ void ImageUtils::saveImage(std::string imagePath, cv::Mat *image)
             Logger *logger = Logger::getInstance("./logs/IPUG.log");
             logger->printLog("Error : Failed To Save Image ... Exiting !!!");
             logger->deleteInstance();
-            exit(OPENCV_ERROR);
         #else
             std::cerr << std::endl << "Error : Failed To Save Image ... Exiting !!!" << std::endl;
-            exit(OPENCV_ERROR);
         #endif 
+
+        exit(OPENCV_ERROR);
     }
 }
 

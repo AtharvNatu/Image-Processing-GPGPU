@@ -12,14 +12,19 @@
 class Denoising
 {
     private:
-        float *kernel;
 
         // Denoising Algorithms
-        void __gaussianBlurKernel(uchar_t *inputImage, uchar_t *outputImage, int imageWidth, int imageHeight, float *kernel);
+        void __gaussianFilter(uchar_t *image, int imageWidth, int imageHeight);
+        void __nonLocalMeansFilter(uchar_t *image, int imageWidth, int imageHeight);
 
     public:
-        Denoising(void);
-        ~Denoising(void);
-        void gaussianBlur(cv::Mat *inputImage, cv::Mat *outputImage);
+        void getWindow(uchar_t* imageData, uchar_t* window, int row, int column, int width, int size);
+        void subtractKernels(uchar_t* k1, uchar_t* k2, double* result, int size);
+        double computeKernelNorm(double* kernel, int size);
+        void getGaussianKernel(double* kernel, int size);
+
+        void gaussianDenoising(cv::Mat *image);
+        void nlmDenoising(cv::Mat *image);
+        
 };
 

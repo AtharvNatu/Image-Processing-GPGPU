@@ -8,7 +8,15 @@
     #define OS 3
 #endif
 
+// Gaussian
 #define GAUSSIAN_KERNEL_SIZE    3
+#define STDDEV                  1.5
+
+// Non-Local Means Filter
+#define WINDOW_SIZE             3
+#define SIMILARITY_WINDOW_SIZE  7
+#define SIGMA                   2.0
+
 #define MAX_PIXEL_VALUE         256
 
 enum ERRORS
