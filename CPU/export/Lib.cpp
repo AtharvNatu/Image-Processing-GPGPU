@@ -37,7 +37,13 @@
                 threadCount  
             );
 
-            std::cout << std::endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << std::endl;
+            cpuChangeDetector->logger->printLog(
+                "Time Required For Change Detection Using Multi-Threading ( ", 
+                threadCount,
+                " ) : ",
+                cpuTime,
+                " seconds"
+            );
         }
 
         //* Single-Threaded
@@ -52,7 +58,11 @@
                 0  
             );
 
-            std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
+            cpuChangeDetector->logger->printLog(
+                "Time Required For Change Detection Using Single Thread : ",
+                cpuTime,
+                " seconds"
+            );
         }
         
         delete cpuChangeDetector;
@@ -85,7 +95,13 @@
                 threadCount  
             );
 
-            std::cout << std::endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << std::endl;
+            cpuChangeDetector->logger->printLog(
+                "Time Required For Change Detection Using Multi-Threading ( ", 
+                threadCount,
+                " ) : ",
+                cpuTime,
+                " seconds"
+            );
         }
 
         //* Single-Threaded
@@ -100,7 +116,11 @@
                 0  
             );
 
-            std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
+            cpuChangeDetector->logger->printLog(
+                "Time Required For Change Detection Using Single Thread : ",
+                cpuTime,
+                " seconds"
+            );
         }
         
         delete cpuChangeDetector;
