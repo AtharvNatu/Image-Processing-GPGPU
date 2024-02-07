@@ -8,4 +8,15 @@
 
 /CPU/bin/*.o
 /CPU/bin/*.obj
+/CPU/bin/*.exp
+/CPU/bin/*.lib
 
+/CUDA/bin/*.o
+/CUDA/bin/*.obj
+/CUDA/bin/*.exp
+/CUDA/bin/*.lib
+
+/OpenCL/bin/*.o
+/OpenCL/bin/*.obj
+/OpenCL/bin/*.exp
+/OpenCL/bin/*.lib
