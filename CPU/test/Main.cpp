@@ -3,11 +3,9 @@
 int main(int argc, char **argv)
 {
     // Code
-    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("IPUG.log");
+    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection();
 
-    #if !RELEASE
-        std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
-    #endif
+    std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
 
     //* Single-Threaded
     // double cpuTime = cpuChangeDetector->detectChanges(

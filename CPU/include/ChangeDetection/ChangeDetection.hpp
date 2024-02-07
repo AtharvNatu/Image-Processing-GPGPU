@@ -1,5 +1,9 @@
 #pragma once
 
+#if (OS == 1)
+    #include <windows.h>
+#endif
+
 #include <iostream>
 #include <cstdlib>
 #include <filesystem>
@@ -42,7 +46,12 @@ class CPUChangeDetection
     // Member Functions
     public:
 
+        //* DEBUG Mode
+        CPUChangeDetection(void);
+
+        //* RELEASE Mode
         CPUChangeDetection(std::string logFilePath);
+
         ~CPUChangeDetection(void);
 
         /// @brief Change Detection Wrapper Function

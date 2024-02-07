@@ -8,10 +8,6 @@
     #define OS 3
 #endif
 
-#if (OS == 1)
-    #include <windows.h>
-#endif
-
 #define GAUSSIAN_KERNEL_SIZE    3
 #define MAX_PIXEL_VALUE         256
 

@@ -1,6 +1,19 @@
 #include "../../include/ChangeDetection/ChangeDetection.hpp"
 
 // Member Function Definitions
+
+//* DEBUG Mode
+CPUChangeDetection::CPUChangeDetection(void)
+{
+    // Code
+    imageUtils = new ImageUtils();
+    denoiser = new Denoising();
+    binarizer = new OtsuBinarizer();
+
+    sdkCreateTimer(&cpuTimer);
+}
+
+//* RELEASE Mode
 CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
 {
     // Code
@@ -220,5 +233,7 @@ CPUChangeDetection::~CPUChangeDetection(void)
     delete imageUtils;
     imageUtils = nullptr;
 
-    logger->deleteInstance();
+    #if RELEASE
+        logger->deleteInstance();
+    #endif
 }

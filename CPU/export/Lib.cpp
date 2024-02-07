@@ -1,21 +1,27 @@
 #include "../include/ChangeDetection/ChangeDetection.hpp"
 
 #if (OS == 1)
-    #include <windows.h>
 
-    
-
-#elif (OS == 2)
-
-    extern "C" double cpuChangeDetection(std::string oldImagePath, std::string newImagePath, std::string outputImagePath, bool grayscale, bool multiThreading)
+    BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) 
     {
-        // Code
-        CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("./logs/IPUG.log");
+        switch (ul_reason_for_call) 
+        {
+            case DLL_PROCESS_ATTACH:
+            case DLL_THREAD_ATTACH:
+            case DLL_THREAD_DETACH:
+            case DLL_PROCESS_DETACH:
+                break;
+        }
+        return TRUE;
+    }
+
+    extern "C" __declspec(dllexport) double cpuChangeDetection(std::string oldImagePath, std::string newImagePath, std::string outputImagePath, bool grayscale, bool multiThreading)
+    {
+        // Variable Declarations
         double cpuTime = 0;
 
-        #if !RELEASE
-            std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
-        #endif
+        // Code
+        CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("IPUG.log");
 
         //* Multi-threaded
         if (multiThreading)
@@ -35,19 +41,67 @@
         }
 
         //* Single-Threaded
-        // else
-        // {
-        //     cpuTime = cpuChangeDetector->detectChanges(
-        //         oldImagePath,
-        //         newImagePath,
-        //         outputImagePath,
-        //         grayscale,
-        //         false,
-        //         0  
-        //     );
+        else
+        {
+            cpuTime = cpuChangeDetector->detectChanges(
+                oldImagePath,
+                newImagePath,
+                outputImagePath,
+                grayscale,
+                false,
+                0  
+            );
 
-        //     std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
-        // }
+            std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
+        }
+        
+        delete cpuChangeDetector;
+        cpuChangeDetector = nullptr;
+
+        return cpuTime;
+    }
+
+#else
+
+    extern "C" double cpuChangeDetection(std::string oldImagePath, std::string newImagePath, std::string outputImagePath, bool grayscale, bool multiThreading)
+    {
+        // Variable Declarations
+        double cpuTime = 0;
+
+        // Code
+        CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("IPUG.log");
+
+        //* Multi-threaded
+        if (multiThreading)
+        {
+            int threadCount = getThreadCount();
+
+            cpuTime = cpuChangeDetector->detectChanges(
+                oldImagePath,
+                newImagePath,
+                outputImagePath,
+                grayscale,
+                true,
+                threadCount  
+            );
+
+            std::cout << std::endl << "Time Required Using Multi-Threading : Using " << threadCount << " Threads : " << cpuTime << " seconds" << std::endl;
+        }
+
+        //* Single-Threaded
+        else
+        {
+            cpuTime = cpuChangeDetector->detectChanges(
+                oldImagePath,
+                newImagePath,
+                outputImagePath,
+                grayscale,
+                false,
+                0  
+            );
+
+            std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
+        }
         
         delete cpuChangeDetector;
         cpuChangeDetector = nullptr;

@@ -2,7 +2,7 @@ cls
 
 @echo off
 
-set dll=false
+set dll=true
 
 if %dll% == false (
 
