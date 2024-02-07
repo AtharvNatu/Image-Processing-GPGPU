@@ -20,7 +20,7 @@ void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* new
     // Code
     if (multiThreading)
     {
-        #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) num_threads(threadCount) collapse(2)
+        #pragma omp parallel for private(oldGreyValue, newGreyValue, difference) num_threads(threadCount)
         for (int i = 0; i < oldImage->rows; i++)
         {
             for (int j = 0; j < oldImage->cols; j++)

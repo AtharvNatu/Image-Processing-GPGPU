@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
     // Code
-    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("./logs/IPUG.log");
+    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection("IPUG.log");
 
     #if !RELEASE
         std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 
     //* Multi-threaded
     int threadCount = getThreadCount();
+    std::cout << std::endl << "Thread Count : " << threadCount << std::endl;
 
     double cpuTime = cpuChangeDetector->detectChanges(
         std::string(argv[1]),
