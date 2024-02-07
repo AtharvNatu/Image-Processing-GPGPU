@@ -37,7 +37,7 @@ class CPUChangeDetection
         /// @param grayscale Output Image format : Grayscale (RED Color Changes) or Binary (WHITE Color Changes)
         /// @param threshold Threshold generated using Otsu Binarization
         /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
-        /// @param threadCount Thread Count generated automatically as per user's system
+        /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
         void __changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, bool grayscale, int threshold, bool multiThreading, int threadCount);
 
     public:
@@ -60,7 +60,7 @@ class CPUChangeDetection
         /// @param outputPath Directory path to store output image
         /// @param grayscale  Output Image format : Grayscale (RED Color Changes) or Binary (WHITE Color Changes)
         /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
-        /// @param threadCount Thread Count generated automatically as per user's system
+        /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
         /// @return Time required for the kernel to execute on CPU in seconds
         double detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale, bool multiThreading, int threadCount);
 };

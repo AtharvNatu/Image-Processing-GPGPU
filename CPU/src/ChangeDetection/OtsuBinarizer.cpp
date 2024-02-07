@@ -1,7 +1,7 @@
 #include "../../include/ChangeDetection/OtsuBinarizer.hpp"
 
 // Method Definitions
-std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
+std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
@@ -10,46 +10,67 @@ std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage)
     std::vector<uchar_t> imageVector;
 
     // Code
-    if (inputImage->isContinuous())
-        // imageVector.assign(
-        //     inputImage->data, 
-        //     inputImage->data + inputImage->total() * inputImage->channels()
-        // );
-        imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
+    if (multiThreading)
+    {
+        if (inputImage->isContinuous())
+            imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
+        else
+        {
+            for (int i = 0; i < inputImage->rows; i++)
+            {
+                imageVector.insert(
+                    imageVector.end(), 
+                    inputImage->ptr<uchar_t>(i), 
+                    inputImage->ptr<uchar_t>(i) + inputImage->cols
+                );
+            }
+        }
+
+        size_t totalPixels = imageVector.size();
+
+        for (std::vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
+        {
+            pixelValue = imageVector[i];
+            histogram[pixelValue]++;
+        }
+
+        //* Normalization
+        for (std::vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
+            histogram[j] = histogram[j] / totalPixels;
+    }
     else
     {
-        for (int i = 0; i < inputImage->rows; i++)
+        if (inputImage->isContinuous())
+            imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
+        else
         {
-            imageVector.insert(
-                imageVector.end(), 
-                inputImage->ptr<uchar_t>(i), 
-                inputImage->ptr<uchar_t>(i) + inputImage->cols
-            );
+            for (int i = 0; i < inputImage->rows; i++)
+            {
+                imageVector.insert(
+                    imageVector.end(), 
+                    inputImage->ptr<uchar_t>(i), 
+                    inputImage->ptr<uchar_t>(i) + inputImage->cols
+                );
+            }
         }
+
+        size_t totalPixels = imageVector.size();
+
+        for (std::vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
+        {
+            pixelValue = imageVector[i];
+            histogram[pixelValue]++;
+        }
+
+        //* Normalization
+        for (std::vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
+            histogram[j] = histogram[j] / totalPixels;
     }
-
-    size_t totalPixels = imageVector.size();
-
-    for (std::vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
-    {
-        pixelValue = imageVector[i];
-        histogram[pixelValue]++;
-    }
-
-    //* Normalization
-    for (std::vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
-        histogram[j] = histogram[j] / totalPixels;
-
-    // double value = 0;
-	// for (int i = 0; i < MAX_PIXEL_VALUE; i++) {
-	// 	value = histogram[i];
-	// 	printf("\tPixel value %d -> %.5f\n", i, value);
-	// }
-
+    
     return histogram;
 }
 
-int OtsuBinarizer::getThreshold(cv::Mat* inputImage)
+int OtsuBinarizer::getThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     int threshold = 0;
@@ -61,16 +82,16 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage)
     double allProbabilitySum = 0, firstProbabilitySum = 0;
 
     // Code
-    std::vector<double> histogram = getHistogram(inputImage);
+    std::vector<double> histogram = getHistogram(inputImage, multiThreading, threadCount);
 
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         allProbabilitySum += i * histogram[i];
 
     for (int j = 0; j < MAX_PIXEL_VALUE; j++)
     {
-        firstClassProbability += histogram[j];
+        firstClassProbability = firstClassProbability + histogram[j];
         secondClassProbability = 1 - firstClassProbability;
-        firstProbabilitySum += j * histogram[j];
+        firstProbabilitySum = firstProbabilitySum + j * histogram[j];
 
         firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
         secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
@@ -110,3 +131,10 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage)
 
 //     memcpy(inputImage->data, imagePixels.data(), imagePixels.size() * sizeof(uchar_t));
 // }
+
+// Print Histogram
+// double value = 0;
+	// for (int i = 0; i < MAX_PIXEL_VALUE; i++) {
+	// 	value = histogram[i];
+	// 	printf("\tPixel value %d -> %.5f\n", i, value);
+	// }

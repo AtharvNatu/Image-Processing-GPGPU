@@ -200,7 +200,7 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
             &newImage, 
             &outputImage,
             grayscale,
-            binarizer->getThreshold(&newImage),
+            binarizer->getThreshold(&newImage, multiThreading, threadCount),
             multiThreading, 
             threadCount
         );
