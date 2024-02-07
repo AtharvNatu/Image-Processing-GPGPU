@@ -6,16 +6,28 @@
 *.txt
 *.DS_STORE
 
+/CPU/App
+/CPU/App.exe
+/CPU/bin/App
+/CPU/bin/App.exe
 /CPU/bin/*.o
 /CPU/bin/*.obj
 /CPU/bin/*.exp
 /CPU/bin/*.lib
 
+/CUDA/App
+/CUDA/App.exe
+/CUDA/bin/App
+/CUDA/bin/App.exe
 /CUDA/bin/*.o
 /CUDA/bin/*.obj
 /CUDA/bin/*.exp
 /CUDA/bin/*.lib
 
+/OpenCL/App
+/OpenCL/App.exe
+/OpenCL/bin/App
+/OpenCL/bin/App.exe
 /OpenCL/bin/*.o
 /OpenCL/bin/*.obj
 /OpenCL/bin/*.exp
