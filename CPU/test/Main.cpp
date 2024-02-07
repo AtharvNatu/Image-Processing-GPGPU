@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     //     0
     // );
     
-    // std::cout << std::endl << "Time Required Using Single Thread : " << std::cpuTime << " seconds" << std::endl;
+    // std::cout << std::endl << "Time Required Using Single Thread : " << cpuTime << " seconds" << std::endl;
 
     //* Multi-threaded
     int threadCount = getThreadCount();

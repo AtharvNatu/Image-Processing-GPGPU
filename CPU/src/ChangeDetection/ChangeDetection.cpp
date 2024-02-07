@@ -195,6 +195,7 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
         
 
         //* CPU Change Detection 
+        // binarizer->getThreshold(&newImage, multiThreading, threadCount);
         __changeDetectionKernel(
             &oldImage, 
             &newImage, 
@@ -207,6 +208,7 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     }
     sdkStopTimer(&cpuTimer);
     double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
+    result = std::round(result / 0.001) * 0.001;
     
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);

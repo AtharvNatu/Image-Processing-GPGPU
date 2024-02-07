@@ -16,8 +16,9 @@ class OtsuBinarizer
         /// @param inputImage cv::Mat Pointer to input image
         /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
         /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
+        /// @param pixelCount Total Pixels in image
         /// @return STL Vector containing histogram values
-        std::vector<double> getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount);
+        std::vector<double> getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount);
 
 
         /// @brief Get Threshold From Input Image

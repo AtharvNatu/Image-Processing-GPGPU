@@ -1,7 +1,7 @@
 #include "../../include/ChangeDetection/OtsuBinarizer.hpp"
 
 // Method Definitions
-std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount)
+std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount)
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
@@ -10,9 +10,7 @@ std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiT
     std::vector<uchar_t> imageVector;
 
     // Code
-    if (multiThreading)
-    {
-        if (inputImage->isContinuous())
+    if (inputImage->isContinuous())
             imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
         else
         {
@@ -26,44 +24,42 @@ std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiT
             }
         }
 
-        size_t totalPixels = imageVector.size();
-
-        for (std::vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
+    size_t totalPixels = imageVector.size();
+    *pixelCount = totalPixels;
+    
+    if (multiThreading)
+    {
+        #pragma omp parallel firstprivate(pixelValue) shared(totalPixels, histogram, imageVector) num_threads(threadCount)
         {
-            pixelValue = imageVector[i];
-            histogram[pixelValue]++;
-        }
+            int segmentSize = MAX_PIXEL_VALUE / threadCount;
 
-        //* Normalization
-        for (std::vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
-            histogram[j] = histogram[j] / totalPixels;
+            #pragma omp for schedule(static, segmentSize)
+            for (size_t i = 0; i < totalPixels; i++)
+            {
+                pixelValue = imageVector[i];
+                #pragma omp atomic
+                histogram[pixelValue]++;
+            }
+
+            #pragma omp barrier
+
+            //* Normalization
+            #pragma omp for schedule(static, segmentSize)
+            for (int j = 0; j < MAX_PIXEL_VALUE; j++)
+                histogram[j] = histogram[j] / totalPixels;
+
+        }
     }
     else
     {
-        if (inputImage->isContinuous())
-            imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
-        else
-        {
-            for (int i = 0; i < inputImage->rows; i++)
-            {
-                imageVector.insert(
-                    imageVector.end(), 
-                    inputImage->ptr<uchar_t>(i), 
-                    inputImage->ptr<uchar_t>(i) + inputImage->cols
-                );
-            }
-        }
-
-        size_t totalPixels = imageVector.size();
-
-        for (std::vector<uchar_t>::size_type i = 0; i != totalPixels; i++)
+        for (size_t i = 0; i != totalPixels; i++)
         {
             pixelValue = imageVector[i];
             histogram[pixelValue]++;
         }
 
         //* Normalization
-        for (std::vector<uchar_t>::size_type j = 0; j != MAX_PIXEL_VALUE; j++)
+        for (int j = 0; j != MAX_PIXEL_VALUE; j++)
             histogram[j] = histogram[j] / totalPixels;
     }
     
@@ -74,34 +70,100 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage, bool multiThreading, int th
 {
     // Variable Declarations
     int threshold = 0;
-
-    //* Probability, Mean, Variance
-    double firstClassProbability = 0, secondClassProbability = 0;
-    double firstClassMean = 0, secondClassMean = 0;
-    double betweenClassVariance, maxVariance = 0;
-    double allProbabilitySum = 0, firstProbabilitySum = 0;
+    double allProbabilitySum = 0;
+    size_t totalPixels = 0;
 
     // Code
-    std::vector<double> histogram = getHistogram(inputImage, multiThreading, threadCount);
+    std::vector<double> histogram = getHistogram(inputImage, multiThreading, threadCount, &totalPixels);
+    
+    if (multiThreading)
+    {   
+        double* betweenClassVariances = new double[MAX_PIXEL_VALUE];
 
-    for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-        allProbabilitySum += i * histogram[i];
-
-    for (int j = 0; j < MAX_PIXEL_VALUE; j++)
-    {
-        firstClassProbability = firstClassProbability + histogram[j];
-        secondClassProbability = 1 - firstClassProbability;
-        firstProbabilitySum = firstProbabilitySum + j * histogram[j];
-
-        firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
-        secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
-
-        betweenClassVariance = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
-
-        if (betweenClassVariance > maxVariance)
+        #pragma omp parallel shared(allProbabilitySum, betweenClassVariances, totalPixels, histogram) num_threads(threadCount)
         {
-            threshold = j;
-            maxVariance = betweenClassVariance;
+            double firstClassProbability = 0, secondClassProbability = 0;
+            double firstClassMean = 0, secondClassMean = 0, firstProbabilitySum = 0;
+
+            int segmentSize = MAX_PIXEL_VALUE / threadCount;
+
+            #pragma omp for schedule(static, segmentSize)
+            for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+            {
+                #pragma omp atomic
+                allProbabilitySum += i * histogram[i];
+                betweenClassVariances[i] = 0;
+            }
+
+            #pragma omp barrier
+
+            #pragma omp for schedule(static, segmentSize)
+            for (int j = 0; j < MAX_PIXEL_VALUE; j++)
+            {
+                firstClassProbability = 0;
+			    firstProbabilitySum = 0;
+
+                for (int k = 0; k <= j % MAX_PIXEL_VALUE; k++)
+                {
+                    firstClassProbability = firstClassProbability + histogram[k];
+                    firstProbabilitySum += k * histogram[k];
+                }
+
+                secondClassProbability = 1 - firstClassProbability;
+
+                firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
+                secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
+
+                betweenClassVariances[j] = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
+            }
+
+            #pragma omp barrier
+
+            #pragma omp single
+            {
+                double maxVariance = 0;
+
+                for (int l = 0; l < MAX_PIXEL_VALUE; l++)
+                {
+                    if (betweenClassVariances[l] > maxVariance)
+                    {
+                        threshold = l;
+                        maxVariance = betweenClassVariances[l];
+                    }
+                }
+            }
+        }
+
+        delete[] betweenClassVariances;
+        betweenClassVariances = nullptr;
+    }
+    else
+    {
+        //* Single Threaded
+        double firstClassProbability = 0, secondClassProbability = 0;
+        double firstClassMean = 0, secondClassMean = 0;
+        double betweenClassVariance, maxVariance = 0;
+        double firstProbabilitySum = 0;
+
+        for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+            allProbabilitySum += i * histogram[i];
+
+        for (int j = 0; j < MAX_PIXEL_VALUE; j++)
+        {
+            firstClassProbability = firstClassProbability + histogram[j];
+            secondClassProbability = 1 - firstClassProbability;
+            firstProbabilitySum = firstProbabilitySum + j * histogram[j];
+
+            firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
+            secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
+
+            betweenClassVariance = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
+
+            if (betweenClassVariance > maxVariance)
+            {
+                threshold = j;
+                maxVariance = betweenClassVariance;
+            }
         }
     }
 
