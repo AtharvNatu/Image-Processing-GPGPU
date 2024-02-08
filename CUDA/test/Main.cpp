@@ -1,16 +1,16 @@
-#include "../include/ChangeDetection/ChangeDetection.hpp"
+#include "../include/ChangeDetection/CudaChangeDetection.cuh"
 
 int main(int argc, char **argv)
 {
     // Code
-    CPUChangeDetection *cpuChangeDetector = new CPUChangeDetection();
+    CudaChangeDetection *cudaChangeDetector = new CudaChangeDetection();
 
     std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
 
     if (std::string(argv[4]) == "ST")
     {
         //* Single-Threaded
-        double cpuTime = cpuChangeDetector->detectChanges(
+        double cpuTime = cudaChangeDetector->detectChanges(
             std::string(argv[1]),
             std::string(argv[2]),
             std::string(argv[3]),

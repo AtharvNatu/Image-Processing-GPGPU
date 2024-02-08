@@ -1,4 +1,5 @@
 OPENCV_INCLUDE_PATH=/usr/include/opencv4
+CUDA_INCLUDE_PATH=/opt/cuda/include/
 
 SHARED_LIB=false
 
@@ -10,14 +11,14 @@ then
 
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
-    g++ -Wall -Wno-deprecated -std=c++20 -o App \
-    ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/Common/*.cpp \
+    nvcc -Wall -Wno-deprecated --std=c++20 -o App \
+    ../test/Main.cpp ../src/ChangeDetection/*.cu ../src/ChangeDetection/*.cpp ../src/Common/*.cpp ../src/Common/*.cu \
     -I ${OPENCV_INCLUDE_PATH} \
+    -I ${CUDA_INCLUDE_PATH} \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
-    -lm -lomp \
-    -fopenmp
+    -lcudart
 
     cp App ../
     echo "Done ... "

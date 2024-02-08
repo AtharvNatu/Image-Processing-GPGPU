@@ -14,7 +14,8 @@ enum ERRORS
 {
     LOG_ERROR = -1,
     OPENCV_ERROR = -2,
-    FILE_ERROR = -3
+    FILE_ERROR = -3,
+    CUDA_ERROR = -4
 };
 
 // Typedefs

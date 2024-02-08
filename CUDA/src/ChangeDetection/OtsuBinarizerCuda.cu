@@ -1,7 +1,7 @@
-#include "../../include/ChangeDetection/OtsuBinarizer.hpp"
+#include "../../include/ChangeDetection/OtsuBinarizerCuda.cuh"
 
 // Method Definitions
-std::vector<double> OtsuBinarizerCPU::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount)
+std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount)
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
@@ -66,7 +66,7 @@ std::vector<double> OtsuBinarizerCPU::getHistogram(cv::Mat* inputImage, bool mul
     return histogram;
 }
 
-int OtsuBinarizerCPU::getThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount)
+int OtsuBinarizer::getThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     int threshold = 0;
@@ -166,7 +166,37 @@ int OtsuBinarizerCPU::getThreshold(cv::Mat* inputImage, bool multiThreading, int
             }
         }
     }
+
+    // #if !RELEASE
+    //     std::cout << std::endl << "Threshold : " << threshold << std::endl;
+    // #endif
    
     return threshold;
 }
 
+// void OtsuBinarizer::binarize(cv::Mat* inputImage)
+// {
+//     // Code
+//     inputImage = inputImage;
+
+//     int threshold = getThreshold(inputImage);
+
+//     vector<uchar_t> imagePixels = imageUtils->getRawData(inputImage);
+
+//     for (vector<uchar_t>::size_type i = 0; i != imageUtils->getTotalPixels(inputImage); i++)
+//     {
+//         if ((int)imagePixels[i] > threshold)
+//             imagePixels[i] = 255;
+//         else
+//             imagePixels[i] = 0;
+//     }
+
+//     memcpy(inputImage->data, imagePixels.data(), imagePixels.size() * sizeof(uchar_t));
+// }
+
+// Print Histogram
+// double value = 0;
+	// for (int i = 0; i < MAX_PIXEL_VALUE; i++) {
+	// 	value = histogram[i];
+	// 	printf("\tPixel value %d -> %.5f\n", i, value);
+	// }

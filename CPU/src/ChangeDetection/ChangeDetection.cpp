@@ -7,7 +7,7 @@ CPUChangeDetection::CPUChangeDetection(void)
 {
     // Code
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizer();
+    binarizer = new OtsuBinarizerCPU();
 
     sdkCreateTimer(&cpuTimer);
 }
@@ -18,20 +18,9 @@ CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
     // Code
     logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizer();
+    binarizer = new OtsuBinarizerCPU();
 
     sdkCreateTimer(&cpuTimer);
-}
-
-void CPUChangeDetection::normalizeImage(cv::Mat* image)
-{
-    // Code
-    double min = 0, max = 0;
-
-    cv::minMaxLoc(*image, &min, &max);
-
-    *image = *image - min;
-    image->convertTo(*image, CV_8U, 255.0 / (max - min));
 }
 
 void CPUChangeDetection::__changeDetectionKernel(cv::Mat* oldImage, cv::Mat* newImage, cv::Mat* outputImage, bool grayscale, int threshold, bool multiThreading, int threadCount)

@@ -8,7 +8,7 @@
 
 #include "../Common/Macros.hpp"
 
-class OtsuBinarizerCPU
+class OtsuBinarizerCuda
 {
     public:
         
