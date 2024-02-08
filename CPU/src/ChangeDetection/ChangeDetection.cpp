@@ -7,7 +7,6 @@ CPUChangeDetection::CPUChangeDetection(void)
 {
     // Code
     imageUtils = new ImageUtils();
-    denoiser = new Denoising();
     binarizer = new OtsuBinarizer();
 
     sdkCreateTimer(&cpuTimer);
@@ -19,7 +18,6 @@ CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
     // Code
     logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
-    denoiser = new Denoising();
     binarizer = new OtsuBinarizer();
 
     sdkCreateTimer(&cpuTimer);
@@ -249,9 +247,6 @@ CPUChangeDetection::~CPUChangeDetection(void)
 
     delete binarizer;
     binarizer = nullptr;
-
-    delete denoiser;
-    denoiser = nullptr;
     
     delete imageUtils;
     imageUtils = nullptr;

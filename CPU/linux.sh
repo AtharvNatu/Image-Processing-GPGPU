@@ -29,7 +29,7 @@ then
     ./images/input/1024_old.png \
     ./images/input/1024_new.png \
     ./images/output \
-    ST
+    MT
 
 else
     clear

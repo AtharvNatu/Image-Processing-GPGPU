@@ -17,7 +17,6 @@
 #include "../Common/helper_timer.h"
 
 #include "ImageUtils.hpp"
-#include "Denoising.hpp"
 #include "OtsuBinarizer.hpp"
 
 
@@ -27,7 +26,6 @@ class CPUChangeDetection
     private:
         StopWatchInterface *cpuTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
-        Denoising *denoiser = nullptr;
         OtsuBinarizer *binarizer = nullptr;
 
         /// @brief CPU Change Detection Kernel
