@@ -26,8 +26,8 @@ then
 
     echo "Running Executable ... "
     ./App \
-    ./images/input/1024_old.png \
-    ./images/input/1024_new.png \
+    ./images/input/10000_old.png \
+    ./images/input/10000_new.png \
     ./images/output
 
 else

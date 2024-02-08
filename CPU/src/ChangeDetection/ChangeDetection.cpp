@@ -212,7 +212,9 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     sdkStartTimer(&cpuTimer);
     {   
         //* 2. Ostu Thresholding
-        int threshold = binarizer->getThreshold(&newImage, multiThreading, threadCount);
+        int threshold1 = binarizer->getThreshold(&oldImage, multiThreading, threadCount);
+        int threshold2 = binarizer->getThreshold(&newImage, multiThreading, threadCount);
+        int meanThreshold = (threshold1 + threshold2) / 2;
     
         //* 3. Differencing
         __changeDetectionKernel(
@@ -220,13 +222,10 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
             &newImage, 
             &outputImage,
             grayscale,
-            threshold,
+            meanThreshold,
             multiThreading, 
             threadCount
         );
-
-        //* 4. Post-processing
-        denoiser->nlmDenoising(&outputImage);
     }
     sdkStopTimer(&cpuTimer);
     double result = sdkGetTimerValue(&cpuTimer) / 1000.0;

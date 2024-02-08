@@ -167,9 +167,9 @@ int OtsuBinarizer::getThreshold(cv::Mat* inputImage, bool multiThreading, int th
         }
     }
 
-    #if !RELEASE
-        std::cout << std::endl << "Threshold : " << threshold << std::endl;
-    #endif
+    // #if !RELEASE
+    //     std::cout << std::endl << "Threshold : " << threshold << std::endl;
+    // #endif
    
     return threshold;
 }
