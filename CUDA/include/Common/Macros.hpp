@@ -9,6 +9,7 @@
 #endif
 
 #define MAX_PIXEL_VALUE         256
+#define THREADS_PER_BLOCK       1024
 
 enum ERRORS
 {

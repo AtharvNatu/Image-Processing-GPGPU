@@ -24,7 +24,7 @@ class CudaChangeDetection
 {
     // Member Variables
     private:
-        StopWatchInterface *cpuTimer = nullptr;
+        StopWatchInterface *cudaTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
         OtsuBinarizerCuda *binarizer = nullptr;
 
@@ -47,7 +47,7 @@ class CudaChangeDetection
         /// @param newImagePath Image with new timestamp
         /// @param outputPath Directory path to store output image
         /// @param grayscale  Output Image format : Grayscale (RED Color Changes) or Binary (WHITE Color Changes)
-        /// @return Time required for the kernel to execute on CPU in seconds
+        /// @return Time required for the kernel to execute on GPU in seconds
         double detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale);
 
         

@@ -11,8 +11,8 @@ then
 
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
-    nvcc -Wall -Wno-deprecated --std=c++20 -o App \
-    ../test/Main.cpp ../src/ChangeDetection/*.cu ../src/ChangeDetection/*.cpp ../src/Common/*.cpp ../src/Common/*.cu \
+    nvcc -ccbin "/opt/cuda/bin" -shared -Xcompiler -fPIC --std=c++20 -w -o App \
+    ../test/Main.cu ../src/ChangeDetection/*.cu ../src/ChangeDetection/*.cpp ../src/Common/*.cpp ../src/Common/*.cu \
     -I ${OPENCV_INCLUDE_PATH} \
     -I ${CUDA_INCLUDE_PATH} \
     -lopencv_core \
@@ -30,7 +30,6 @@ then
     ./images/input/Dubai_1.jpg \
     ./images/input/Dubai_2.jpg \
     ./images/output \
-    MT
 
 else
     clear

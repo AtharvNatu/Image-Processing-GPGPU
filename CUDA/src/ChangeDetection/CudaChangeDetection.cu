@@ -1,12 +1,12 @@
 #include "../../include/ChangeDetection/CudaChangeDetection.cuh"
 
 // CUDA Kernel Definitions
-__global__ void grayscaleChangeDetection(uchar_t *oldImageData, uchar_t *newImageData, uchar_t *outputImageData, int threshold)
-{
-    // Code
-    
+// __global__ void grayscaleChangeDetection(uchar_t *oldImageData, uchar_t *newImageData, uchar_t *outputImageData, int threshold)
+// {
+//     // Code
 
-}
+
+// }
 
 // Member Function Definitions
 
@@ -14,10 +14,11 @@ __global__ void grayscaleChangeDetection(uchar_t *oldImageData, uchar_t *newImag
 CudaChangeDetection::CudaChangeDetection(void)
 {
     // Code
+    std::cout << std::endl << "In 1";
     imageUtils = new ImageUtils();
     binarizer = new OtsuBinarizerCuda();
 
-    sdkCreateTimer(&cpuTimer);
+    sdkCreateTimer(&cudaTimer);
 }
 
 //* RELEASE Mode
@@ -28,7 +29,7 @@ CudaChangeDetection::CudaChangeDetection(std::string logFilePath)
     imageUtils = new ImageUtils();
     binarizer = new OtsuBinarizerCuda();
 
-    sdkCreateTimer(&cpuTimer);
+    sdkCreateTimer(&cudaTimer);
 }
 
 double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale)
@@ -37,6 +38,7 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     cv::String outputImagePath;
 
     // Code
+    std::cout << std::endl << "In";
 
     //* Check Validity of Input Images
     if (!std::filesystem::exists(oldImagePath) || !std::filesystem::exists(newImagePath))
@@ -84,26 +86,27 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
-    sdkStartTimer(&cpuTimer);
+    //* CUDA Kernel Configuration
+    size_t size = (oldImage.size().height * oldImage.size().width) / 3;
+    std::cout << std::endl << "Image Size : " << size << std::endl;
+
+    // dim3 BLOCKS((size + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
+
+    sdkStartTimer(&cudaTimer);
     {   
         //* 2. Ostu Thresholding
-        int threshold1 = binarizer->getThreshold(&oldImage, multiThreading, threadCount);
-        int threshold2 = binarizer->getThreshold(&newImage, multiThreading, threadCount);
-        int meanThreshold = (threshold1 + threshold2) / 2;
+        // int threshold1 = binarizer->getThreshold(&oldImage, multiThreading, threadCount);
+        // int threshold2 = binarizer->getThreshold(&newImage, multiThreading, threadCount);
+        // int meanThreshold = (threshold1 + threshold2) / 2;
     
         //* 3. Differencing
-        __changeDetectionKernel(
-            &oldImage, 
-            &newImage, 
-            &outputImage,
-            grayscale,
-            meanThreshold,
-            multiThreading, 
-            threadCount
-        );
+        // if (grayscale)
+            // grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(oldImage.data, newImage.data, outputImage.data, 90);
+        // else
+        //     binaryChangeDetection<<<>>>
     }
-    sdkStopTimer(&cpuTimer);
-    double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
+    sdkStopTimer(&cudaTimer);
+    double result = sdkGetTimerValue(&cudaTimer) / 1000.0;
     result = std::round(result / 0.001) * 0.001;
     
     // Save Image
@@ -119,8 +122,8 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
 CudaChangeDetection::~CudaChangeDetection(void)
 {
     // Code
-    sdkDeleteTimer(&cpuTimer);
-    cpuTimer = nullptr;
+    sdkDeleteTimer(&cudaTimer);
+    cudaTimer = nullptr;
 
     delete binarizer;
     binarizer = nullptr;
