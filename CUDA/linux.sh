@@ -10,8 +10,9 @@ then
     cd ./bin
 
     # For Executable
+    #! -shared -Xcompiler -fPIC For Shared Object
     echo "Compiling Source Files and Linking Libraries ... "
-    nvcc -ccbin "/opt/cuda/bin" -shared -Xcompiler -fPIC --std=c++20 -w -o App \
+    nvcc --std=c++20 -w -o App \
     ../test/Main.cu ../src/ChangeDetection/*.cu ../src/ChangeDetection/*.cpp ../src/Common/*.cpp ../src/Common/*.cu \
     -I ${OPENCV_INCLUDE_PATH} \
     -I ${CUDA_INCLUDE_PATH} \

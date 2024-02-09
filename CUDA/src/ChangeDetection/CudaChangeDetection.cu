@@ -14,7 +14,6 @@
 CudaChangeDetection::CudaChangeDetection(void)
 {
     // Code
-    std::cout << std::endl << "In 1";
     imageUtils = new ImageUtils();
     binarizer = new OtsuBinarizerCuda();
 
@@ -38,7 +37,6 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     cv::String outputImagePath;
 
     // Code
-    std::cout << std::endl << "In";
 
     //* Check Validity of Input Images
     if (!std::filesystem::exists(oldImagePath) || !std::filesystem::exists(newImagePath))
