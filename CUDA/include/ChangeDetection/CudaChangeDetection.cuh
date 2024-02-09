@@ -28,6 +28,9 @@ class CudaChangeDetection
         ImageUtils *imageUtils = nullptr;
         OtsuBinarizerCuda *binarizer = nullptr;
 
+        uchar3 *hOldImage = NULL, *hNewImage = NULL, *hOutputImage = NULL;
+        uchar3 *dOldImage = NULL, *dNewImage = NULL, *dOutputImage = NULL;
+
     public:
         Logger *logger = nullptr;
 
@@ -54,8 +57,8 @@ class CudaChangeDetection
 };
 
 // CUDA Kernel Declarations
-__global__ void grayscaleChangeDetection(uchar_t *oldImageData, uchar_t *newImageData, uchar_t *outputImageData, int threshold);
-__global__ void binaryChangeDetection(uchar_t *oldImageData, uchar_t *newImageData, uchar_t *outputImageData, int threshold);
+__global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, size_t size);
+__global__ void binaryChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, size_t size);
 
 
 

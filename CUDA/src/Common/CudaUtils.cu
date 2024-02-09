@@ -46,3 +46,25 @@ void cudaMemFree(void **devPtr)
         *devPtr = NULL;
     }
 }
+
+void convertImageToPixelArr(uchar3 *pixelArray, uchar_t *imageData, size_t size)
+{
+    // Code
+    for (size_t i = 0; i < size; i++, imageData += 3)
+    {
+        pixelArray[i].x = imageData[2];
+        pixelArray[i].y = imageData[1];
+        pixelArray[i].z = imageData[0];
+    }
+}
+
+void convertPixelArrToImage(uchar3 *pixelArray, uchar_t *imageData, size_t size)
+{
+    // Code
+    for (size_t i = 0; i < size; i++, imageData += 3)
+    {
+        imageData[2] = pixelArray[i].x;
+        imageData[1] = pixelArray[i].y;
+        imageData[0] = pixelArray[i].z;
+    }
+}

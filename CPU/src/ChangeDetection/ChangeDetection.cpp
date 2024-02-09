@@ -147,6 +147,7 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
 {
     // Variable Declarations
     cv::String outputImagePath;
+    std::string outputFileName;
 
     // Code
 
@@ -166,8 +167,11 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     std::filesystem::path oldFilePath = std::filesystem::path(oldImagePath).stem();
     std::filesystem::path newFilePath = std::filesystem::path(newImagePath).stem();
 
-    std::string outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes" + std::filesystem::path(oldImagePath).extension().string());
-
+    if (grayscale)
+        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Grayscale" + std::filesystem::path(oldImagePath).extension().string());
+    else
+        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Binary" + std::filesystem::path(oldImagePath).extension().string());
+    
     #if (OS == 1)
         outputImagePath = outputPath + ("\\" + outputFileName);
     #elif (OS == 2 || OS == 3)
