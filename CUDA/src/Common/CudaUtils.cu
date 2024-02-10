@@ -47,7 +47,7 @@ void cudaMemFree(void **devPtr)
     }
 }
 
-void convertImageToPixelArr(uchar3 *pixelArray, uchar_t *imageData, size_t size)
+void convertImageToPixelArr(uchar_t *imageData, uchar3 *pixelArray, size_t size)
 {
     // Code
     for (size_t i = 0; i < size; i++, imageData += 3)

@@ -11,15 +11,17 @@ __global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uch
     
     if (pixelId < size)
     {
-        oldGreyValue = (uchar_t)
-                    ((0.299 * (uchar_t)oldImage[pixelId].x) +
-                    (0.587 * (uchar_t)oldImage[pixelId].y) +
-                    (0.114 * (uchar_t)oldImage[pixelId].z));
+        oldGreyValue = (uchar_t)(
+                        (0.299 * (uchar_t)oldImage[pixelId].x) +
+                        (0.587 * (uchar_t)oldImage[pixelId].y) +
+                        (0.114 * (uchar_t)oldImage[pixelId].z)
+                    );
 
-        newGreyValue = (uchar_t)
-                    ((0.299 * (uchar_t)newImage[pixelId].x) +
-                    (0.587 * (uchar_t)newImage[pixelId].y) +
-                    (0.114 * (uchar_t)newImage[pixelId].z));
+        newGreyValue = (uchar_t)(
+                        (0.299 * (uchar_t)newImage[pixelId].x) +
+                        (0.587 * (uchar_t)newImage[pixelId].y) +
+                        (0.114 * (uchar_t)newImage[pixelId].z)
+                    );
 
         difference = abs(oldGreyValue - newGreyValue);
 
@@ -48,15 +50,17 @@ __global__ void binaryChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3
     
     if (pixelId < size)
     {
-        oldGreyValue = (uchar_t)
-                    ((0.299 * (uchar_t)oldImage[pixelId].x) +
-                    (0.587 * (uchar_t)oldImage[pixelId].y) +
-                    (0.114 * (uchar_t)oldImage[pixelId].z));
+        oldGreyValue = (uchar_t)(
+                        (0.299 * (uchar_t)oldImage[pixelId].x) +
+                        (0.587 * (uchar_t)oldImage[pixelId].y) +
+                        (0.114 * (uchar_t)oldImage[pixelId].z)
+                    );
 
-        newGreyValue = (uchar_t)
-                    ((0.299 * (uchar_t)newImage[pixelId].x) +
-                    (0.587 * (uchar_t)newImage[pixelId].y) +
-                    (0.114 * (uchar_t)newImage[pixelId].z));
+        newGreyValue = (uchar_t)(
+                        (0.299 * (uchar_t)newImage[pixelId].x) +
+                        (0.587 * (uchar_t)newImage[pixelId].y) +
+                        (0.114 * (uchar_t)newImage[pixelId].z)
+                    );
 
         difference = abs(oldGreyValue - newGreyValue);
 
@@ -151,12 +155,12 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
 
     size_t size = oldImage.size().height * oldImage.size().width;
 
-    hOldImage = (uchar3*)malloc(size * sizeof(uchar3));
-    hNewImage = (uchar3*)malloc(size * sizeof(uchar3));
-    hOutputImage = (uchar3*)malloc(size * sizeof(uchar3));
+    hOldImage = new uchar3[size];
+    hNewImage = new uchar3[size];
+    hOutputImage = new uchar3[size];
 
-    convertImageToPixelArr(hOldImage, oldImage.data, size);
-    convertImageToPixelArr(hNewImage, newImage.data, size);
+    convertImageToPixelArr(oldImage.data, hOldImage, size);
+    convertImageToPixelArr(newImage.data, hNewImage, size);
     
     cudaMemAlloc((void**)&dOldImage, size * sizeof(uchar3));
     cudaMemAlloc((void**)&dNewImage, size * sizeof(uchar3));
@@ -201,14 +205,14 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
 CudaChangeDetection::~CudaChangeDetection(void)
 {
     // Code
-    free(hOutputImage);
-    hNewImage = NULL;
+    delete[] hOutputImage;
+    hOutputImage = nullptr;
 
-    free(hNewImage);
-    hNewImage = NULL;
+    delete[] hNewImage;
+    hNewImage = nullptr;
 
-    free(hOldImage);
-    hOldImage = NULL;
+    delete[] hOldImage;
+    hOldImage = nullptr;
 
     cudaMemFree((void**)&dOutputImage);
     cudaMemFree((void**)&dNewImage);
