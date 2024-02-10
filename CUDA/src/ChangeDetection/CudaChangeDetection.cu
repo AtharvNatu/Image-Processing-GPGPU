@@ -155,42 +155,41 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
 
     size_t size = oldImage.size().height * oldImage.size().width;
 
-    hOldImage = new uchar3[size];
-    hNewImage = new uchar3[size];
-    hOutputImage = new uchar3[size];
+    hostOldImage = new uchar3[size];
+    hostNewImage = new uchar3[size];
+    hostOutputImage = new uchar3[size];
 
-    convertImageToPixelArr(oldImage.data, hOldImage, size);
-    convertImageToPixelArr(newImage.data, hNewImage, size);
+    convertImageToPixelArr(oldImage.data, hostOldImage, size);
+    convertImageToPixelArr(newImage.data, hostNewImage, size);
     
-    cudaMemAlloc((void**)&dOldImage, size * sizeof(uchar3));
-    cudaMemAlloc((void**)&dNewImage, size * sizeof(uchar3));
-    cudaMemAlloc((void**)&dOutputImage, size * sizeof(uchar3));
+    cudaMemAlloc((void**)&deviceOldImage, size * sizeof(uchar3));
+    cudaMemAlloc((void**)&deviceNewImage, size * sizeof(uchar3));
+    cudaMemAlloc((void**)&deviceOutputImage, size * sizeof(uchar3));
 
-    cudaMemCopy(dOldImage, hOldImage, size * sizeof(uchar3), cudaMemcpyHostToDevice);
-    cudaMemCopy(dNewImage, hNewImage, size * sizeof(uchar3), cudaMemcpyHostToDevice);
+    cudaMemCopy(deviceOldImage, hostOldImage, size * sizeof(uchar3), cudaMemcpyHostToDevice);
+    cudaMemCopy(deviceNewImage, hostNewImage, size * sizeof(uchar3), cudaMemcpyHostToDevice);
 
     //* CUDA Kernel Configuration
-    
     dim3 BLOCKS((size + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
 
     sdkStartTimer(&cudaTimer);
     {   
         //* 2. Ostu Thresholding
-        // int threshold1 = binarizer->getThreshold(&oldImage, multiThreading, threadCount);
+        // int threshold1 = binarizer->computeHistogram(&oldImage, (long*)0);
         // int threshold2 = binarizer->getThreshold(&newImage, multiThreading, threadCount);
         // int meanThreshold = (threshold1 + threshold2) / 2;
     
         //* 3. Differencing
         if (grayscale)
-            grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(dOldImage, dNewImage, dOutputImage, 90, size);
+            grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, 90, size);
         else
-            binaryChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(dOldImage, dNewImage, dOutputImage, 90, size);
+            binaryChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, 90, size);
     }
     sdkStopTimer(&cudaTimer);
     double result = sdkGetTimerValue(&cudaTimer) / 1000.0;
 
-    cudaMemCopy(hOutputImage, dOutputImage, size * sizeof(uchar3), cudaMemcpyDeviceToHost);
-    convertPixelArrToImage(hOutputImage, outputImage.data, size);
+    cudaMemCopy(hostOutputImage, deviceOutputImage, size * sizeof(uchar3), cudaMemcpyDeviceToHost);
+    convertPixelArrToImage(hostOutputImage, outputImage.data, size);
     
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
@@ -205,18 +204,18 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
 CudaChangeDetection::~CudaChangeDetection(void)
 {
     // Code
-    delete[] hOutputImage;
-    hOutputImage = nullptr;
+    delete[] hostOutputImage;
+    hostOutputImage = nullptr;
 
-    delete[] hNewImage;
-    hNewImage = nullptr;
+    delete[] hostNewImage;
+    hostNewImage = nullptr;
 
-    delete[] hOldImage;
-    hOldImage = nullptr;
+    delete[] hostOldImage;
+    hostOldImage = nullptr;
 
-    cudaMemFree((void**)&dOutputImage);
-    cudaMemFree((void**)&dNewImage);
-    cudaMemFree((void**)&dOldImage);
+    cudaMemFree((void**)&deviceOutputImage);
+    cudaMemFree((void**)&deviceNewImage);
+    cudaMemFree((void**)&deviceOldImage);
 
     sdkDeleteTimer(&cudaTimer);
     cudaTimer = nullptr;

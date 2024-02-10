@@ -42,8 +42,8 @@ void cudaMemFree(void **devPtr)
     // Code
     if (*devPtr)
     {
-        cudaFree(*devPtr);
-        *devPtr = NULL;
+        if (cudaFree(*devPtr) == cudaSuccess);
+            *devPtr = nullptr;
     }
 }
 

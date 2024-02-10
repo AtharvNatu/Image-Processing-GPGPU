@@ -21,3 +21,4 @@ enum ERRORS
 
 // Typedefs
 typedef unsigned char uchar_t;
+typedef unsigned int uint_t;

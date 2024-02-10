@@ -1,7 +1,7 @@
 #include "../../include/ChangeDetection/OtsuBinarizer.hpp"
 
 // Method Definitions
-std::vector<double> OtsuBinarizerCPU::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount)
+std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount)
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
@@ -11,18 +11,18 @@ std::vector<double> OtsuBinarizerCPU::getHistogram(cv::Mat* inputImage, bool mul
 
     // Code
     if (inputImage->isContinuous())
-            imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
-        else
+        imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
+    else
+    {
+        for (int i = 0; i < inputImage->rows; i++)
         {
-            for (int i = 0; i < inputImage->rows; i++)
-            {
-                imageVector.insert(
-                    imageVector.end(), 
-                    inputImage->ptr<uchar_t>(i), 
-                    inputImage->ptr<uchar_t>(i) + inputImage->cols
-                );
-            }
+            imageVector.insert(
+                imageVector.end(), 
+                inputImage->ptr<uchar_t>(i), 
+                inputImage->ptr<uchar_t>(i) + inputImage->cols
+            );
         }
+    }
 
     size_t totalPixels = imageVector.size();
     *pixelCount = totalPixels;
@@ -66,7 +66,7 @@ std::vector<double> OtsuBinarizerCPU::getHistogram(cv::Mat* inputImage, bool mul
     return histogram;
 }
 
-int OtsuBinarizerCPU::getThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount)
+int OtsuBinarizerCPU::computeThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount)
 {
     // Variable Declarations
     int threshold = 0;
@@ -74,7 +74,7 @@ int OtsuBinarizerCPU::getThreshold(cv::Mat* inputImage, bool multiThreading, int
     size_t totalPixels = 0;
 
     // Code
-    std::vector<double> histogram = getHistogram(inputImage, multiThreading, threadCount, &totalPixels);
+    std::vector<double> histogram = computeHistogram(inputImage, multiThreading, threadCount, &totalPixels);
     
     if (multiThreading)
     {   

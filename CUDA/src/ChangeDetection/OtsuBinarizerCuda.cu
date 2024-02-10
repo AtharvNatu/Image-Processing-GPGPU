@@ -1,202 +1,97 @@
 #include "../../include/ChangeDetection/OtsuBinarizerCuda.cuh"
 
+OtsuBinarizerCuda::OtsuBinarizerCuda(void)
+{
+    imageUtils = new ImageUtils();
+}
+
+//* CUDA Kernel Definitions
+__global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, long segmentSize, long totalPixels)
+{
+    // Code
+    size_t pixelID = blockIdx.x * blockDim.x + threadIdx.x;
+
+    size_t start = pixelID * segmentSize;
+
+    for (size_t i = start; i < (start + segmentSize); i++)
+    {
+        if (i < totalPixels)
+        {
+            int pixelValue = (int)pixelData[i];
+            atomicAdd(&histogram[pixelValue], 1);
+        }
+    }
+
+    __syncthreads();
+}
+
+__global__ void cudaComputeClassVariances(double *histogram, double allProbabilitySum, long totalPixels, double *betweenClassVariances)
+{
+    // Code
+    size_t pixelID = blockIdx.x * blockDim.x + threadIdx.x;
+
+    double firstClassProbability = 0, secondClassProbability = 0;
+    double firstClassMean = 0, secondClassMean = 0;
+    double firstProbabilitySum = 0;
+
+    for (int i = 0; i <= pixelID % MAX_PIXEL_VALUE; i++)
+    {
+        firstClassProbability = firstClassProbability + histogram[i];
+        firstProbabilitySum += i * histogram[i];
+    }
+
+    secondClassProbability = 1 - firstClassProbability;
+
+    firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
+    secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
+
+    betweenClassVariances[pixelID] = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
+}
+
 // Method Definitions
-// std::vector<double> OtsuBinarizer::getHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount)
-// {
-//     // Variable Declarations
-//     uchar_t pixelValue = 0;
-//     std::vector<double> histogram(MAX_PIXEL_VALUE);
-//     std::vector<uchar_t> occurences(MAX_PIXEL_VALUE);
-//     std::vector<uchar_t> imageVector;
+double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, long *pixelCount)
+{
+    // Code
+    std::vector<uchar_t> imageData = imageUtils->getRawPixelData(inputImage);
+    long totalPixels = imageData.size();
+    *pixelCount = totalPixels;
 
-//     // Code
-//     if (inputImage->isContinuous())
-//             imageVector.assign((uchar_t*)inputImage->datastart, (uchar_t*)inputImage->dataend);
-//         else
-//         {
-//             for (int i = 0; i < inputImage->rows; i++)
-//             {
-//                 imageVector.insert(
-//                     imageVector.end(), 
-//                     inputImage->ptr<uchar_t>(i), 
-//                     inputImage->ptr<uchar_t>(i) + inputImage->cols
-//                 );
-//             }
-//         }
+    hostHistogram = new uint_t[MAX_PIXEL_VALUE];
+    normalizedHistogram = new double[MAX_PIXEL_VALUE];
 
-//     size_t totalPixels = imageVector.size();
-//     *pixelCount = totalPixels;
-    
-//     if (multiThreading)
-//     {
-//         #pragma omp parallel firstprivate(pixelValue) shared(totalPixels, histogram, imageVector) num_threads(threadCount)
-//         {
-//             int segmentSize = MAX_PIXEL_VALUE / threadCount;
+    memset(hostHistogram, 0, MAX_PIXEL_VALUE);
 
-//             #pragma omp for schedule(static, segmentSize)
-//             for (size_t i = 0; i < totalPixels; i++)
-//             {
-//                 pixelValue = imageVector[i];
-//                 #pragma omp atomic
-//                 histogram[pixelValue]++;
-//             }
+    cudaMemAlloc((void**)&deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE);
+    cudaMemAlloc((void**)&devicePixelData, sizeof(uchar_t) * totalPixels);
 
-//             #pragma omp barrier
+    cudaMemCopy(deviceHistogram, hostHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
+    cudaMemCopy(devicePixelData, imageData.data(), sizeof(uchar_t) * totalPixels, cudaMemcpyHostToDevice);
 
-//             //* Normalization
-//             #pragma omp for schedule(static, segmentSize)
-//             for (int j = 0; j < MAX_PIXEL_VALUE; j++)
-//                 histogram[j] = histogram[j] / totalPixels;
+    dim3 BLOCKS(((totalPixels / 3) + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
 
-//         }
-//     }
-//     else
-//     {
-//         for (size_t i = 0; i != totalPixels; i++)
-//         {
-//             pixelValue = imageVector[i];
-//             histogram[pixelValue]++;
-//         }
+    long segmentSize = ceil(totalPixels / (THREADS_PER_BLOCK * BLOCKS.x)) + 1;
+    std::cout << std::endl << "Segment Size = " << segmentSize << std::endl;
 
-//         //* Normalization
-//         for (int j = 0; j != MAX_PIXEL_VALUE; j++)
-//             histogram[j] = histogram[j] / totalPixels;
-//     }
-    
-//     return histogram;
-// }
+    cudaHistogram<<<BLOCKS, THREADS_PER_BLOCK>>>(devicePixelData, deviceHistogram, segmentSize, totalPixels);
 
-// int OtsuBinarizer::getThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount)
-// {
-//     // Variable Declarations
-//     int threshold = 0;
-//     double allProbabilitySum = 0;
-//     size_t totalPixels = 0;
+    cudaMemCopy(hostHistogram, deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
 
-//     // Code
-//     std::vector<double> histogram = getHistogram(inputImage, multiThreading, threadCount, &totalPixels);
-    
-//     if (multiThreading)
-//     {   
-//         double* betweenClassVariances = new double[MAX_PIXEL_VALUE];
+    //* Normalize Host Histogram
+    for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+        normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
 
-//         #pragma omp parallel shared(allProbabilitySum, betweenClassVariances, totalPixels, histogram) num_threads(threadCount)
-//         {
-//             double firstClassProbability = 0, secondClassProbability = 0;
-//             double firstClassMean = 0, secondClassMean = 0, firstProbabilitySum = 0;
+    cudaMemFree((void**)&devicePixelData);
+    cudaMemFree((void**)&deviceHistogram);
 
-//             int segmentSize = MAX_PIXEL_VALUE / threadCount;
+    delete[] hostHistogram;
+    hostHistogram = nullptr;
 
-//             #pragma omp for schedule(static, segmentSize)
-//             for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-//             {
-//                 #pragma omp atomic
-//                 allProbabilitySum += i * histogram[i];
-//                 betweenClassVariances[i] = 0;
-//             }
+    return normalizedHistogram;
+}
 
-//             #pragma omp barrier
+OtsuBinarizerCuda::~OtsuBinarizerCuda(void)
+{
+    delete imageUtils;
+    imageUtils = nullptr;
+}
 
-//             #pragma omp for schedule(static, segmentSize)
-//             for (int j = 0; j < MAX_PIXEL_VALUE; j++)
-//             {
-//                 firstClassProbability = 0;
-// 			    firstProbabilitySum = 0;
-
-//                 for (int k = 0; k <= j % MAX_PIXEL_VALUE; k++)
-//                 {
-//                     firstClassProbability = firstClassProbability + histogram[k];
-//                     firstProbabilitySum += k * histogram[k];
-//                 }
-
-//                 secondClassProbability = 1 - firstClassProbability;
-
-//                 firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
-//                 secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
-
-//                 betweenClassVariances[j] = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
-//             }
-
-//             #pragma omp barrier
-
-//             #pragma omp single
-//             {
-//                 double maxVariance = 0;
-
-//                 for (int l = 0; l < MAX_PIXEL_VALUE; l++)
-//                 {
-//                     if (betweenClassVariances[l] > maxVariance)
-//                     {
-//                         threshold = l;
-//                         maxVariance = betweenClassVariances[l];
-//                     }
-//                 }
-//             }
-//         }
-
-//         delete[] betweenClassVariances;
-//         betweenClassVariances = nullptr;
-//     }
-//     else
-//     {
-//         //* Single Threaded
-//         double firstClassProbability = 0, secondClassProbability = 0;
-//         double firstClassMean = 0, secondClassMean = 0;
-//         double betweenClassVariance, maxVariance = 0;
-//         double firstProbabilitySum = 0;
-
-//         for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-//             allProbabilitySum += i * histogram[i];
-
-//         for (int j = 0; j < MAX_PIXEL_VALUE; j++)
-//         {
-//             firstClassProbability = firstClassProbability + histogram[j];
-//             secondClassProbability = 1 - firstClassProbability;
-//             firstProbabilitySum = firstProbabilitySum + j * histogram[j];
-
-//             firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;
-//             secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;
-
-//             betweenClassVariance = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
-
-//             if (betweenClassVariance > maxVariance)
-//             {
-//                 threshold = j;
-//                 maxVariance = betweenClassVariance;
-//             }
-//         }
-//     }
-
-//     // #if !RELEASE
-//     //     std::cout << std::endl << "Threshold : " << threshold << std::endl;
-//     // #endif
-   
-//     return threshold;
-// }
-
-// // void OtsuBinarizer::binarize(cv::Mat* inputImage)
-// // {
-// //     // Code
-// //     inputImage = inputImage;
-
-// //     int threshold = getThreshold(inputImage);
-
-// //     vector<uchar_t> imagePixels = imageUtils->getRawData(inputImage);
-
-// //     for (vector<uchar_t>::size_type i = 0; i != imageUtils->getTotalPixels(inputImage); i++)
-// //     {
-// //         if ((int)imagePixels[i] > threshold)
-// //             imagePixels[i] = 255;
-// //         else
-// //             imagePixels[i] = 0;
-// //     }
-
-// //     memcpy(inputImage->data, imagePixels.data(), imagePixels.size() * sizeof(uchar_t));
-// // }
-
-// // Print Histogram
-// // double value = 0;
-// 	// for (int i = 0; i < MAX_PIXEL_VALUE; i++) {
-// 	// 	value = histogram[i];
-// 	// 	printf("\tPixel value %d -> %.5f\n", i, value);
-// 	// }

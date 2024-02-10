@@ -22,5 +22,10 @@ class ImageUtils
         /// @param imagePath Absolute image path where image will be saved
         /// @param image Pointer to cv::Mat Image
         void saveImage(std::string imagePath, cv::Mat* image);
+
+        /// @brief Get Image Raw Pixel Data
+        /// @param image Input Image
+        /// @return Vector containing raw pixel data
+        std::vector<uchar_t> getRawPixelData(cv::Mat* image);
 };
 

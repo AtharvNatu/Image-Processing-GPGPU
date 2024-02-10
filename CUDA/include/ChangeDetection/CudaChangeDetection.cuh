@@ -28,8 +28,8 @@ class CudaChangeDetection
         ImageUtils *imageUtils = nullptr;
         OtsuBinarizerCuda *binarizer = nullptr;
 
-        uchar3 *hOldImage = nullptr, *hNewImage = nullptr, *hOutputImage = nullptr;
-        uchar3 *dOldImage = NULL, *dNewImage = NULL, *dOutputImage = NULL;
+        uchar3 *hostOldImage = nullptr, *hostNewImage = nullptr, *hostOutputImage = nullptr;
+        uchar3 *deviceOldImage = nullptr, *deviceNewImage = nullptr, *deviceOutputImage = nullptr;
 
     public:
         Logger *logger = nullptr;
@@ -56,7 +56,7 @@ class CudaChangeDetection
         
 };
 
-//* CUDA Kernel Declarations
+//* CUDA Kernel Prototypes
 
 // @brief CUDA Grayscale Change Detection Kernel | Output Image format : Grayscale (RED Color Changes)
 /// @param oldImage Old Image Pixel Array in uchar3 Format
