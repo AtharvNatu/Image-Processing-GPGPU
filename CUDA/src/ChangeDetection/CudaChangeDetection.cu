@@ -175,15 +175,15 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     sdkStartTimer(&cudaTimer);
     {   
         //* 2. Ostu Thresholding
-        // int threshold1 = binarizer->computeHistogram(&oldImage, (long*)0);
-        // int threshold2 = binarizer->getThreshold(&newImage, multiThreading, threadCount);
-        // int meanThreshold = (threshold1 + threshold2) / 2;
+        int threshold1 = binarizer->computeThreshold(&oldImage);
+        int threshold2 = binarizer->computeThreshold(&newImage);
+        int meanThreshold = (threshold1 + threshold2) / 2;
     
         //* 3. Differencing
         if (grayscale)
-            grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, 90, size);
+            grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size);
         else
-            binaryChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, 90, size);
+            binaryChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size);
     }
     sdkStopTimer(&cudaTimer);
     double result = sdkGetTimerValue(&cudaTimer) / 1000.0;

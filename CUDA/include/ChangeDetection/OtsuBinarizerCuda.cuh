@@ -13,10 +13,6 @@ class OtsuBinarizerCuda
 {
     private:
         ImageUtils *imageUtils = nullptr;
-        
-        uint_t *hostHistogram = nullptr, *deviceHistogram = nullptr;
-        uchar_t *devicePixelData = nullptr;
-        double *normalizedHistogram = nullptr;
 
     public:
 
@@ -25,20 +21,16 @@ class OtsuBinarizerCuda
 
         
         /// @brief Generate Histogram From Input Image
-        /// @param inputImage cv::Mat Pointer to input image
-        /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
-        /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
-        /// @param pixelCount Total Pixels in image
-        /// @return STL Vector containing histogram values
+        /// @param inputImage [IN] cv::Mat Pointer to input image
+        /// @param pixelCount [OUT] Total Pixels in image
+        /// @return Array containing histogram values in double precision
         double* computeHistogram(cv::Mat* inputImage, long *pixelCount);
 
 
         /// @brief Get Threshold From Input Image
         /// @param inputImage cv::Mat Pointer to input image
-        /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
-        /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
         /// @return Integer threshold value for the image
-        int computeThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount);
+        int computeThreshold(cv::Mat* inputImage);
 };
 
 //* CUDA Kernel Prototypes

@@ -25,14 +25,27 @@ void cudaMemCopy(void *dst, const void *src, size_t count, cudaMemcpyKind kind)
     cudaError_t result = cudaMemcpy(dst, src, count, kind);
     if (result != cudaSuccess)
     {
-        #if RELEASE
-            Logger *logger = Logger::getInstance("IPUG.log");
-            logger->printLog("Error : Failed To Copy Memory On GPU : %s", cudaGetErrorString(result), " ... Exiting !!!");
-            logger->deleteInstance();
-        #else
-            std::cerr << std::endl << "Error : Failed To Copy Memory From : " << src << " To " << dst << " : " << cudaGetErrorString(result) << " ... Exiting !!!" << std::endl;
-        #endif
-
+        if (kind == cudaMemcpyHostToDevice)
+        {
+            #if RELEASE
+                Logger *logger = Logger::getInstance("IPUG.log");
+                logger->printLog("Error : Failed To Copy Memory From CPU To GPU : %s", cudaGetErrorString(result), " ... Exiting !!!");
+                logger->deleteInstance();
+            #else
+                std::cerr << std::endl << "Error : Failed To Copy Memory From CPU To GPU : " << cudaGetErrorString(result) << " ... Exiting !!!" << std::endl;
+            #endif
+        }
+        else if (kind == cudaMemcpyDeviceToHost)
+        {
+            #if RELEASE
+                Logger *logger = Logger::getInstance("IPUG.log");
+                logger->printLog("Error : Failed To Copy Memory From GPU To CPU : %s", cudaGetErrorString(result), " ... Exiting !!!");
+                logger->deleteInstance();
+            #else
+                std::cerr << std::endl << "Error : Failed To Copy Memory From GPU To CPU : " << cudaGetErrorString(result) << " ... Exiting !!!" << std::endl;
+            #endif
+        }
+       
         exit(CUDA_ERROR);
     }
 }
