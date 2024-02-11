@@ -62,7 +62,7 @@ void Logger::deleteInstance(void)
     _logger = nullptr;
 }
 
-Logger::~Logger(void)
+Logger::~Logger()
 {
     // Code
     if (logFile)

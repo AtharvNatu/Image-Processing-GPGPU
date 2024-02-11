@@ -1,10 +1,5 @@
 #include "../../include/ChangeDetection/OtsuBinarizerCuda.cuh"
 
-OtsuBinarizerCuda::OtsuBinarizerCuda(void)
-{
-    imageUtils = new ImageUtils();
-}
-
 //* CUDA Kernel Definitions
 __global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, long segmentSize, long totalPixels)
 {
@@ -22,7 +17,7 @@ __global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, long segmen
         }
     }
 
-    // __syncthreads();
+    __syncthreads();
 }
 
 __global__ void cudaComputeClassVariances(double *histogram, double allProbabilitySum, long totalPixels, double *betweenClassVariances)
@@ -47,17 +42,18 @@ __global__ void cudaComputeClassVariances(double *histogram, double allProbabili
 
     betweenClassVariances[pixelID] = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);
 
-    // __syncthreads();
+    __syncthreads();
 
 }
 
 // Method Definitions
-double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, long *pixelCount)
+double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, long *pixelCount, double *gpuTime)
 {
     // Variable Declarations
     uint_t *hostHistogram = nullptr, *deviceHistogram = nullptr;
     uchar_t *devicePixelData = nullptr;
     double *normalizedHistogram = nullptr;
+    StopWatchInterface *gpuTimer = nullptr;
 
     // Code
     std::vector<uchar_t> imageData = imageUtils->getRawPixelData(inputImage);
@@ -77,16 +73,30 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, long *pixelCoun
     dim3 BLOCKS(((totalPixels / 3) + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
 
     long segmentSize = ceil(totalPixels / (THREADS_PER_BLOCK * BLOCKS.x)) + 1;
-    std::cout << std::endl << "Segment Size = " << segmentSize << std::endl;
 
-    cudaHistogram<<<BLOCKS, THREADS_PER_BLOCK>>>(devicePixelData, deviceHistogram, segmentSize, totalPixels);
-
+    //* CUDA Kernel Call
+    sdkCreateTimer(&gpuTimer);
+    sdkStartTimer(&gpuTimer);
+    {
+        cudaHistogram<<<BLOCKS, THREADS_PER_BLOCK>>>(devicePixelData, deviceHistogram, segmentSize, totalPixels);
+    }
+    sdkStopTimer(&gpuTimer);
+    *gpuTime += sdkGetTimerValue(&gpuTimer);
+    
     cudaMemCopy(hostHistogram, deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
 
     //* Normalize Host Histogram
     normalizedHistogram = new double[MAX_PIXEL_VALUE];
-    for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-        normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
+    sdkStartTimer(&gpuTimer);
+    {
+        for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+            normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
+    }
+    sdkStopTimer(&gpuTimer);
+    *gpuTime += sdkGetTimerValue(&gpuTimer);
+
+    sdkDeleteTimer(&gpuTimer);
+    gpuTimer = nullptr;
 
     cudaMemFree((void**)&devicePixelData);
     cudaMemFree((void**)&deviceHistogram);
@@ -97,16 +107,17 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, long *pixelCoun
     return normalizedHistogram;
 }
 
-int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage)
+int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, double *gpuTime)
 {
     // Variable Declarations
     double allProbabilitySum = 0, maxVariance = 0;
     long totalPixels = 0;
     double *hostBetweenClassVariances = nullptr, *deviceHistogram = nullptr, *deviceBetweenClassVariances = nullptr;
     int threshold = 0;
+    StopWatchInterface *gpuTimer = nullptr;
 
     // Code
-    double *hostHistogram = computeHistogram(inputImage, &totalPixels);
+    double *hostHistogram = computeHistogram(inputImage, imageUtils, &totalPixels, gpuTime);
 
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         allProbabilitySum += i * hostHistogram[i];
@@ -118,30 +129,40 @@ int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage)
     cudaMemAlloc((void**)&deviceHistogram, sizeof(double) * MAX_PIXEL_VALUE);
     cudaMemAlloc((void**)&deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE);
 
-    std::cout << std::endl << "Done 1" << std::endl;
-
     cudaMemCopy(deviceHistogram, hostHistogram, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
     cudaMemCopy(deviceBetweenClassVariances, hostBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
-
-     std::cout << std::endl << "Done 2" << std::endl;
     
-    dim3 BLOCKS(((totalPixels / 3) + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
+    //* CUDA Kernel Configuration
+    int NUM_BLOCKS = 1;
+    int THREADS = THREADS_PER_BLOCK / 4;
 
     //* CUDA Kernel Call
-    cudaComputeClassVariances<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceHistogram, allProbabilitySum, totalPixels, deviceBetweenClassVariances);
+    sdkCreateTimer(&gpuTimer);
+    sdkStartTimer(&gpuTimer);
+    {
+        cudaComputeClassVariances<<<NUM_BLOCKS, THREADS>>>(deviceHistogram, allProbabilitySum, totalPixels, deviceBetweenClassVariances);
+    }
+    sdkStopTimer(&gpuTimer);
+    *gpuTime += sdkGetTimerValue(&gpuTimer);
 
     cudaMemCopy(hostBetweenClassVariances, deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
-
-    std::cout << std::endl << "Done 3" << std::endl;
-
-    for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+    
+    sdkStartTimer(&gpuTimer);
     {
-        if (hostBetweenClassVariances[i] > maxVariance)
+        for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         {
-            threshold = i;
-            maxVariance = hostBetweenClassVariances[i];
+            if (hostBetweenClassVariances[i] > maxVariance)
+            {
+                threshold = i;
+                maxVariance = hostBetweenClassVariances[i];
+            }
         }
     }
+    sdkStopTimer(&gpuTimer);
+    *gpuTime += sdkGetTimerValue(&gpuTimer);
+
+    sdkDeleteTimer(&gpuTimer);
+    gpuTimer = nullptr;
 
     cudaMemFree((void**)&deviceBetweenClassVariances);
     cudaMemFree((void**)&deviceHistogram);
@@ -156,9 +177,4 @@ int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage)
     return threshold;
 }   
 
-OtsuBinarizerCuda::~OtsuBinarizerCuda(void)
-{
-    delete imageUtils;
-    imageUtils = nullptr;
-}
 

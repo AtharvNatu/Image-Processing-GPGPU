@@ -14,7 +14,11 @@
 #include "../Common/Macros.hpp"
 #include "../Common/Threading.hpp"
 #include "../Common/Logger.hpp"
-#include "../Common/helper_timer.h"
+
+#ifndef _HELPER_TIMER_H_
+    #define _HELPER_TIMER_H_
+    #include "../Common/helper_timer.h"
+#endif
 
 #include "ImageUtils.hpp"
 #include "OtsuBinarizer.hpp"
@@ -50,7 +54,7 @@ class CPUChangeDetection
         //* RELEASE Mode
         CPUChangeDetection(std::string logFilePath);
 
-        ~CPUChangeDetection(void);
+        ~CPUChangeDetection();
 
         /// @brief Change Detection Wrapper Function
         /// @param oldImagePath Image with old timestamp

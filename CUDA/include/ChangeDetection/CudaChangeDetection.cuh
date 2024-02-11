@@ -14,7 +14,11 @@
 #include "../Common/Macros.hpp"
 #include "../Common/Logger.hpp"
 #include "../Common/CudaUtils.cuh"
-#include "../Common/helper_timer.h"
+
+#ifndef _HELPER_TIMER_H_
+    #define _HELPER_TIMER_H_
+    #include "../Common/helper_timer.h"
+#endif
 
 #include "ImageUtils.hpp"
 #include "OtsuBinarizerCuda.cuh"
@@ -43,7 +47,7 @@ class CudaChangeDetection
         //* RELEASE Mode
         CudaChangeDetection(std::string logFilePath);
 
-        ~CudaChangeDetection(void);
+        ~CudaChangeDetection();
 
         /// @brief Change Detection Wrapper Function
         /// @param oldImagePath Image with old timestamp
@@ -53,7 +57,9 @@ class CudaChangeDetection
         /// @return Time required for the kernel to execute on GPU in seconds
         double detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale);
 
-        
+        /// @brief Memory Cleanup For Host and Device
+        /// @param None
+        void cleanup(void);
 };
 
 //* CUDA Kernel Prototypes

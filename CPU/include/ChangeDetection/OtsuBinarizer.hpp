@@ -8,24 +8,35 @@
 
 #include "../Common/Macros.hpp"
 
+#ifndef _HELPER_TIMER_H_
+    #define _HELPER_TIMER_H_
+    #include "../Common/helper_timer.h"
+#endif
+
+#include "ImageUtils.hpp"
+
 class OtsuBinarizerCPU
 {
     public:
         
         /// @brief Generate Histogram From Input Image
         /// @param inputImage cv::Mat Pointer to input image
+        /// @param imageUtils Instance of ImageUtils Class
         /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
         /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
         /// @param pixelCount Total Pixels in image
+        /// @param cpuTime [OUT] CPU Execution Time For Computing Histogram
         /// @return STL Vector containing histogram values
-        std::vector<double> computeHistogram(cv::Mat* inputImage, bool multiThreading, int threadCount, size_t* pixelCount);
+        std::vector<double> computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, size_t* pixelCount, double *cpuTime);
 
 
         /// @brief Get Threshold From Input Image
         /// @param inputImage cv::Mat Pointer to input image
+        /// @param imageUtils Instance of ImageUtils Class
         /// @param multiThreading Single Threaded (false) or MultiThreaded (true)
         /// @param threadCount Thread Count calculated automatically as per CPU, if multiThreading = true
+        /// @param cpuTime [OUT] CPU Execution Time For Computing Threshold
         /// @return Integer threshold value for the image
-        int computeThreshold(cv::Mat* inputImage, bool multiThreading, int threadCount);
+        int computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, double *cpuTime);
 };
 

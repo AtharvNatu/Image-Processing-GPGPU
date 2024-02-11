@@ -148,6 +148,7 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     // Variable Declarations
     cv::String outputImagePath;
     std::string outputFileName;
+    double cpuTime = 0;
 
     // Code
 
@@ -168,9 +169,9 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     std::filesystem::path newFilePath = std::filesystem::path(newImagePath).stem();
 
     if (grayscale)
-        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Grayscale" + std::filesystem::path(oldImagePath).extension().string());
+        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Grayscale_CPU" + std::filesystem::path(oldImagePath).extension().string());
     else
-        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Binary" + std::filesystem::path(oldImagePath).extension().string());
+        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Binary_CPU" + std::filesystem::path(oldImagePath).extension().string());
     
     #if (OS == 1)
         outputImagePath = outputPath + ("\\" + outputFileName);
@@ -200,14 +201,14 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
+    //* 2. Ostu Thresholding
+    int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, multiThreading, threadCount, &cpuTime);
+    int threshold2 = binarizer->computeThreshold(&newImage, imageUtils, multiThreading, threadCount, &cpuTime);
+    int meanThreshold = (threshold1 + threshold2) / 2;
+
+    //* 3. Differencing
     sdkStartTimer(&cpuTimer);
     {   
-        //* 2. Ostu Thresholding
-        int threshold1 = binarizer->computeThreshold(&oldImage, multiThreading, threadCount);
-        int threshold2 = binarizer->computeThreshold(&newImage, multiThreading, threadCount);
-        int meanThreshold = (threshold1 + threshold2) / 2;
-    
-        //* 3. Differencing
         __changeDetectionKernel(
             &oldImage, 
             &newImage, 
@@ -219,8 +220,13 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
         );
     }
     sdkStopTimer(&cpuTimer);
-    double result = sdkGetTimerValue(&cpuTimer) / 1000.0;
-    result = std::round(result / 0.001) * 0.001;
+    cpuTime += sdkGetTimerValue(&cpuTimer);
+
+    //* Milliseconds to Seconds
+    cpuTime /= 1000.0;
+
+    //* Round to 3 Decimal Places
+    cpuTime = std::round(cpuTime / 0.001) * 0.001;
     
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
@@ -229,7 +235,7 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     newImage.release();
     oldImage.release();
 
-    return result;
+    return cpuTime;
 }
 
 CPUChangeDetection::~CPUChangeDetection(void)

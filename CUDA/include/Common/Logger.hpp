@@ -26,7 +26,7 @@ class Logger
         void operator = (const Logger &) = delete;
 
         Logger(const std::string file);
-        ~Logger(void);
+        ~Logger();
 
         // Member Function Declarations
         static Logger* getInstance(const std::string file);

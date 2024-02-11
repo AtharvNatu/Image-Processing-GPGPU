@@ -101,6 +101,7 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     // Variable Declarations
     cv::String outputImagePath;
     std::string outputFileName;
+    double gpuTime = 0;
 
     // Code
 
@@ -121,9 +122,9 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     std::filesystem::path newFilePath = std::filesystem::path(newImagePath).stem();
 
     if (grayscale)
-        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Grayscale" + std::filesystem::path(oldImagePath).extension().string());
+        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Grayscale_CUDA" + std::filesystem::path(oldImagePath).extension().string());
     else
-        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Binary" + std::filesystem::path(oldImagePath).extension().string());
+        outputFileName = oldFilePath.string() + ("_" + newFilePath.string()) + ("_Changes_Binary_CUDA" + std::filesystem::path(oldImagePath).extension().string());
     
     #if (OS == 1)
         outputImagePath = outputPath + ("\\" + outputFileName);
@@ -155,6 +156,11 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
 
     size_t size = oldImage.size().height * oldImage.size().width;
 
+    //* 2. Ostu Thresholding
+    int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, &gpuTime);
+    int threshold2 = binarizer->computeThreshold(&newImage, imageUtils, &gpuTime);
+    int meanThreshold = (threshold1 + threshold2) / 2;
+
     hostOldImage = new uchar3[size];
     hostNewImage = new uchar3[size];
     hostOutputImage = new uchar3[size];
@@ -172,38 +178,40 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     //* CUDA Kernel Configuration
     dim3 BLOCKS((size + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
 
+    //* 3. Differencing
     sdkStartTimer(&cudaTimer);
     {   
-        //* 2. Ostu Thresholding
-        int threshold1 = binarizer->computeThreshold(&oldImage);
-        int threshold2 = binarizer->computeThreshold(&newImage);
-        int meanThreshold = (threshold1 + threshold2) / 2;
-    
-        //* 3. Differencing
         if (grayscale)
             grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size);
         else
             binaryChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size);
     }
     sdkStopTimer(&cudaTimer);
-    double result = sdkGetTimerValue(&cudaTimer) / 1000.0;
+    gpuTime += sdkGetTimerValue(&cudaTimer);
+    gpuTime /= 1000.0;  //* Milliseconds to Seconds
 
     cudaMemCopy(hostOutputImage, deviceOutputImage, size * sizeof(uchar3), cudaMemcpyDeviceToHost);
     convertPixelArrToImage(hostOutputImage, outputImage.data, size);
     
-    // Save Image
+    //* Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
+
+    cleanup();
 
     outputImage.release();
     newImage.release();
     oldImage.release();
 
-    return result;
+    return gpuTime;
 }
 
-CudaChangeDetection::~CudaChangeDetection(void)
+void CudaChangeDetection::cleanup(void)
 {
-    // Code
+    //* Cleanup Code
+    cudaMemFree((void**)&deviceOutputImage);
+    cudaMemFree((void**)&deviceNewImage);
+    cudaMemFree((void**)&deviceOldImage);
+
     delete[] hostOutputImage;
     hostOutputImage = nullptr;
 
@@ -212,11 +220,11 @@ CudaChangeDetection::~CudaChangeDetection(void)
 
     delete[] hostOldImage;
     hostOldImage = nullptr;
+}
 
-    cudaMemFree((void**)&deviceOutputImage);
-    cudaMemFree((void**)&deviceNewImage);
-    cudaMemFree((void**)&deviceOldImage);
-
+CudaChangeDetection::~CudaChangeDetection()
+{
+    // Code
     sdkDeleteTimer(&cudaTimer);
     cudaTimer = nullptr;
 

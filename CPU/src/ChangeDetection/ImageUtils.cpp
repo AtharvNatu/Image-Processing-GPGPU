@@ -38,4 +38,26 @@ void ImageUtils::saveImage(std::string imagePath, cv::Mat *image)
     }
 }
 
+std::vector<uchar_t> ImageUtils::getRawPixelData(cv::Mat* image)
+{
+    // Code
+    std::vector<uchar_t> imageVector;
+
+    if (image->isContinuous())
+        imageVector.assign((uchar_t*)image->datastart, (uchar_t*)image->dataend);
+    else
+    {
+        for (int i = 0; i < image->rows; i++)
+        {
+            imageVector.insert(
+                imageVector.end(), 
+                image->ptr<uchar_t>(i), 
+                image->ptr<uchar_t>(i) + image->cols
+            );
+        }
+    }
+
+    return imageVector;
+}
+
 
