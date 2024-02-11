@@ -26,9 +26,9 @@ then
 
     echo "Running Executable ... "
     ./App \
-    ./images/input/10000_old.png \
-    ./images/input/10000_new.png \
-    ./images/output \
+    /home/atharv/Desktop/Internship/Images/10000_old.png \
+    /home/atharv/Desktop/Internship/Images/10000_new.png \
+    /home/atharv/Desktop/Internship/Images/ \
     MT
 
 else
