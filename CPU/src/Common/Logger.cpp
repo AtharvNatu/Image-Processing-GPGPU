@@ -9,7 +9,7 @@ Logger::Logger(const std::string file)
     logFile = fopen(file.c_str(), "a+");
     if (logFile == nullptr)
     {
-        std::cerr << std::endl << "Failed To Open Log File : logs/Log.txt ... Exiting !!!" << std::endl;
+        std::cerr << std::endl << "Failed To Open Log File : IPUG.log ... Exiting !!!" << std::endl;
         exit(LOG_ERROR);
     }
 }
