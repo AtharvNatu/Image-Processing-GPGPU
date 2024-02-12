@@ -1,13 +1,13 @@
 #include "../../include/ChangeDetection/CudaChangeDetection.cuh"
 
 // CUDA Kernel Definitions
-__global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, size_t size)
+__global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
 
     // Code
-    long pixelId = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelId = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (pixelId < size)
     {
@@ -40,13 +40,13 @@ __global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uch
     }
 }
 
-__global__ void binaryChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, size_t size)
+__global__ void binaryChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
 
     // Code
-    long pixelId = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelId = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (pixelId < size)
     {
@@ -154,7 +154,7 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
-    size_t size = oldImage.size().height * oldImage.size().width;
+    int size = oldImage.size().height * oldImage.size().width;
 
     //* 2. Ostu Thresholding
     int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, &gpuTime);

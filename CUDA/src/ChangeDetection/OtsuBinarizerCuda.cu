@@ -1,14 +1,14 @@
 #include "../../include/ChangeDetection/OtsuBinarizerCuda.cuh"
 
 //* CUDA Kernel Definitions
-__global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, long segmentSize, long totalPixels)
+__global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, int segmentSize, int totalPixels)
 {
     // Code
-    size_t pixelID = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelID = blockIdx.x * blockDim.x + threadIdx.x;
 
-    size_t start = pixelID * segmentSize;
+    int start = pixelID * segmentSize;
 
-    for (size_t i = start; i < (start + segmentSize); i++)
+    for (int i = start; i < (start + segmentSize); i++)
     {
         if (i < totalPixels)
         {
@@ -20,10 +20,10 @@ __global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, long segmen
     __syncthreads();
 }
 
-__global__ void cudaComputeClassVariances(double *histogram, double allProbabilitySum, long totalPixels, double *betweenClassVariances)
+__global__ void cudaComputeClassVariances(double *histogram, double allProbabilitySum, int totalPixels, double *betweenClassVariances)
 {
     // Code
-    size_t pixelID = blockIdx.x * blockDim.x + threadIdx.x;
+    int pixelID = blockIdx.x * blockDim.x + threadIdx.x;
 
     double firstClassProbability = 0, secondClassProbability = 0;
     double firstClassMean = 0, secondClassMean = 0;
@@ -47,7 +47,7 @@ __global__ void cudaComputeClassVariances(double *histogram, double allProbabili
 }
 
 // Method Definitions
-double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, long *pixelCount, double *gpuTime)
+double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, int *pixelCount, double *gpuTime)
 {
     // Variable Declarations
     uint_t *hostHistogram = nullptr, *deviceHistogram = nullptr;
@@ -57,7 +57,7 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *ima
 
     // Code
     std::vector<uchar_t> imageData = imageUtils->getRawPixelData(inputImage);
-    long totalPixels = imageData.size();
+    int totalPixels = imageData.size();
     *pixelCount = totalPixels;
 
     hostHistogram = new uint_t[MAX_PIXEL_VALUE];
@@ -111,9 +111,8 @@ int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUt
 {
     // Variable Declarations
     double allProbabilitySum = 0, maxVariance = 0;
-    long totalPixels = 0;
     double *hostBetweenClassVariances = nullptr, *deviceHistogram = nullptr, *deviceBetweenClassVariances = nullptr;
-    int threshold = 0;
+    int threshold = 0, totalPixels = 0;
     StopWatchInterface *gpuTimer = nullptr;
 
     // Code
