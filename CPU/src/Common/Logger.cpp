@@ -51,7 +51,6 @@ std::string Logger::getCurrentTime(void)
     // Code
     time_t currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::string strTime(30, '\0');
-    // strftime(&strTime[0], strTime.size(), "%d/%m/%Y | %I:%M:%S", localtime(&currentTime));
     strftime(&strTime[0], strTime.size(), "%d/%m/%Y | %r", localtime(&currentTime));
     return strTime;
 }
@@ -67,9 +66,7 @@ Logger::~Logger()
     // Code
     if (logFile)
     {
-        #if RELEASE
-            printLog("Log File Closed ...");
-        #endif
+        printLog("Log File Closed ...");
         
         fclose(logFile);
         logFile = nullptr;
