@@ -25,7 +25,7 @@ class OtsuBinarizerCuda
         /// @param pixelCount [OUT] Total Pixels in image
         /// @param gpuTime [OUT] Kernel Execution Time
         /// @return Array containing histogram values in double precision
-        double* computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, int *pixelCount, double *gpuTime);
+        double* computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, size_t *pixelCount, double *gpuTime);
 
 
         /// @brief Get Threshold From Input Image
@@ -37,6 +37,6 @@ class OtsuBinarizerCuda
 };
 
 //* CUDA Kernel Prototypes
-__global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, int segmentSize, int totalPixels);
+__global__ void cudaHistogram(uchar_t *pixelData, uint_t *histogram, int segmentSize, size_t totalPixels);
 
-__global__ void cudaComputeClassVariances(double *histogram, double allProbabilitySum, int totalPixels, double *betweenClassVariances);
+__global__ void cudaComputeClassVariances(double *histogram, double allProbabilitySum, double *betweenClassVariances, size_t totalPixels);
