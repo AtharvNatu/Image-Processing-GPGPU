@@ -170,11 +170,11 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
 
     size_t localSize[2] = { 1, 1 };
 
-    // gpuTime += clfw->oclExecuteKernel(globalSize, localSize, 2);
+    gpuTime += clfw->oclExecuteKernel(globalSize, localSize, 2);
 
-    // std::cout << std::endl << "3" << std::endl;
+    std::cout << std::endl << "3" << std::endl;
 
-    // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
+    clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
 
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
