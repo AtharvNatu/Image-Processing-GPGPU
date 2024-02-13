@@ -154,7 +154,7 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
-    int size = oldImage.size().height * oldImage.size().width;
+    size_t size = oldImage.size().height * oldImage.size().width;
 
     //* 2. Ostu Thresholding
     int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, &gpuTime);

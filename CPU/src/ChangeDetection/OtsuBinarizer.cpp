@@ -1,5 +1,11 @@
 #include "../../include/ChangeDetection/OtsuBinarizer.hpp"
 
+OtsuBinarizerCPU::OtsuBinarizerCPU(void)
+{
+    // Code
+    sdkCreateTimer(&cpuTimer);
+}
+
 // Method Definitions
 std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, size_t* pixelCount, double *cpuTime)
 {
@@ -8,14 +14,12 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
     std::vector<double> histogram(MAX_PIXEL_VALUE);
     std::vector<uchar_t> occurences(MAX_PIXEL_VALUE);
     std::vector<uchar_t> imageVector;
-    StopWatchInterface *cpuTimer = nullptr;
 
     // Code
     imageVector = imageUtils->getRawPixelData(inputImage);
     size_t totalPixels = imageVector.size();
     *pixelCount = totalPixels;
     
-    sdkCreateTimer(&cpuTimer);
     sdkStartTimer(&cpuTimer);
     {
         if (multiThreading)
@@ -57,9 +61,6 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
     sdkStopTimer(&cpuTimer);
     *cpuTime += sdkGetTimerValue(&cpuTimer);
 
-    sdkDeleteTimer(&cpuTimer);
-    cpuTimer = nullptr;
-
     return histogram;
 }
 
@@ -69,12 +70,10 @@ int OtsuBinarizerCPU::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUti
     int threshold = 0;
     double allProbabilitySum = 0;
     size_t totalPixels = 0;
-    StopWatchInterface *cpuTimer = nullptr;
 
     // Code
     std::vector<double> histogram = computeHistogram(inputImage, imageUtils, multiThreading, threadCount, &totalPixels, cpuTime);
-    
-    sdkCreateTimer(&cpuTimer);
+
     sdkStartTimer(&cpuTimer);
     {
         if (multiThreading)
@@ -170,9 +169,16 @@ int OtsuBinarizerCPU::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUti
     }
     sdkStopTimer(&cpuTimer);
     *cpuTime += sdkGetTimerValue(&cpuTimer);
-
-    sdkDeleteTimer(&cpuTimer);
-    cpuTimer = nullptr;
    
     return threshold;
+}
+
+OtsuBinarizerCPU::~OtsuBinarizerCPU()
+{
+    // Code
+    if (cpuTimer)
+    {
+        sdkDeleteTimer(&cpuTimer);
+        cpuTimer = nullptr;
+    }
 }

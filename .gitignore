@@ -32,3 +32,5 @@
 /OpenCL/bin/*.obj
 /OpenCL/bin/*.exp
 /OpenCL/bin/*.lib
+/OpenCL/src/*.DS_Store
+/OpenCL/src/Common/*.DS_Store

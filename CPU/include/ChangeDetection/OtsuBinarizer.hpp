@@ -17,6 +17,9 @@
 
 class OtsuBinarizerCPU
 {
+    private:
+        StopWatchInterface *cpuTimer = nullptr;
+
     public:
         
         /// @brief Generate Histogram From Input Image
