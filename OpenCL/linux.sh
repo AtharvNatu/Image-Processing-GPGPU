@@ -2,6 +2,7 @@ OPENCV_INCLUDE_PATH=/usr/include/opencv4
 
 #? USING AMD ROCm OpenCL SDK
 OPENCL_INCLUDE_PATH=/opt/rocm/include/
+OPENCL_LIB_PATH=/opt/rocm/lib/
 
 SHARED_LIB=false
 
@@ -21,6 +22,7 @@ then
     ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/CLFW/CLFW.cpp ../src/Common/*.cpp \
     -I ${OPENCV_INCLUDE_PATH} \
     -I ${OPENCL_INCLUDE_PATH} \
+    -L ${OPENCL_LIB_PATH} \
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \

@@ -60,7 +60,7 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
         (size_t)inputImage->size().width,
         (size_t)inputImage->size().height
     };
-    *gpuTime += clfw->oclExecuteKernel(globalSize, NULL, 2);
+    *gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
     std::cout << std::endl << "6" << std::endl;
 
     std::cout << std::endl << "7" << std::endl;

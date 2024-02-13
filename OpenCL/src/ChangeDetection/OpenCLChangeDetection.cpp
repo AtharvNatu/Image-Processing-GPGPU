@@ -1,5 +1,44 @@
 #include "../../include/ChangeDetection/OpenCLChangeDetection.hpp"
 
+const char* oclChangeDetection =
+	
+	"__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;" \
+	
+	"__kernel void oclChangeDetection(__read_only image2d_t inputOld, __read_only image2d_t inputNew, __write_only image2d_t output, int threshold)" \
+	"{" \
+		"int2 gid = (int2)(get_global_id(0), get_global_id(1));" \
+		
+		"uint4 oldPixel, newPixel, finalPixelColor;" \
+		"uint oldGrayVal, newGrayVal, difference;" \
+		
+		"int2 sizeOld = get_image_dim(inputOld);" \
+		"int2 sizeNew = get_image_dim(inputNew);" \
+
+		"if (all(gid < sizeOld) && all(gid < sizeNew))" \
+		"{" \
+			"oldPixel = read_imageui(inputOld, sampler, gid);" \
+			"oldGrayVal = (0.3 * oldPixel.x) + (0.59 * oldPixel.y) + (0.11 * oldPixel.z);" \
+			"newPixel = read_imageui(inputNew, sampler, gid);" \
+			"newGrayVal = (0.3 * newPixel.x) + (0.59 * newPixel.y) + (0.11 * newPixel.z);" \
+		"}" \
+
+		"difference = abs_diff(oldGrayVal, newGrayVal);" \
+
+		"if (difference >= threshold)" \
+		"{" \
+			"finalPixelColor = (uint4)(0, 0, 255, 255);" \
+		"}" \
+		"else" \
+		"{" \
+			"finalPixelColor = (uint4)(oldGrayVal, oldGrayVal, oldGrayVal, 255);" \
+		"}" \
+		
+		"write_imageui(output, gid, finalPixelColor);" \
+	"}";
+
+
+
+
 // Member Function Definitions
 
 //* DEBUG Mode
@@ -86,42 +125,67 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     //* 2. Ostu Thresholding
     clfw->initialize();
 
-    size_t pixelCount = 0;
-    binarizer->computeHistogram(&oldImage, imageUtils, clfw, &pixelCount, &gpuTime);
+    // size_t pixelCount = 0;
+    // binarizer->computeHistogram(&oldImage, imageUtils, clfw, &pixelCount, &gpuTime);
     // int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, multiThreading, threadCount, &cpuTime);
     // int threshold2 = binarizer->computeThreshold(&newImage, imageUtils, multiThreading, threadCount, &cpuTime);
     // int meanThreshold = (threshold1 + threshold2) / 2;
 
-    std::cout << std::endl << "Pixel Count = " << pixelCount << std::endl;
-
     //* 3. Differencing
-    // sdkStartTimer(&cpuTimer);
-    // {   
-    //     __changeDetectionKernel(
-    //         &oldImage, 
-    //         &newImage, 
-    //         &outputImage,
-    //         grayscale,
-    //         meanThreshold,
-    //         multiThreading, 
-    //         threadCount
-    //     );
-    // }
-    // sdkStopTimer(&cpuTimer);
-    // cpuTime += sdkGetTimerValue(&cpuTimer);
+    clfw->oclCreateImage(
+        &deviceOldImage,
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        oldImage.cols,
+        oldImage.rows,
+        oldImage.data
+    );
 
-    // //* Milliseconds to Seconds
-    // cpuTime /= 1000.0;
+    clfw->oclCreateImage(
+        &deviceNewImage,
+        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+        newImage.cols,
+        newImage.rows,
+        newImage.data
+    );
 
-    // //* Round to 3 Decimal Places
-    // cpuTime = std::round(cpuTime / 0.001) * 0.001;
-    
+    clfw->oclCreateImage(
+        &deviceOutputImage,
+        CL_MEM_WRITE_ONLY,
+        oldImage.cols,
+        oldImage.rows,
+        NULL
+    );
+
+    std::cout << std::endl << "1" << std::endl;
+    clfw->oclCreateProgram(oclChangeDetection);
+
+    clfw->oclCreateKernel("oclChangeDetection", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
+    std::cout << std::endl << "2" << std::endl;
+
+    size_t globalSize[2] = 
+    {
+        static_cast<size_t>(oldImage.cols),
+        static_cast<size_t>(oldImage.rows)
+    };
+
+    size_t localSize[2] = { 1, 1 };
+
+    // gpuTime += clfw->oclExecuteKernel(globalSize, localSize, 2);
+
+    // std::cout << std::endl << "3" << std::endl;
+
+    // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
+
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
 
     outputImage.release();
     newImage.release();
     oldImage.release();
+
+    clfw->oclReleaseBuffer(deviceOutputImage);
+    clfw->oclReleaseBuffer(deviceNewImage);
+    clfw->oclReleaseBuffer(deviceOldImage);
 
     clfw->uninitialize();
 

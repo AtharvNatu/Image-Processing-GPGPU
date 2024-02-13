@@ -33,6 +33,9 @@ class OpenCLChangeDetection
         OtsuBinarizerOpenCL *binarizer = nullptr;
         CLFW *clfw = nullptr;
 
+        cl_mem deviceOldImage = NULL, deviceNewImage = NULL, deviceOutputImage = NULL;
+        
+
     public:
         Logger *logger = nullptr;
 

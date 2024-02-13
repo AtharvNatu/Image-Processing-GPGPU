@@ -351,19 +351,36 @@ void CLFW::oclGetDeviceProperties(void)
 void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels)
 {
     // Code
-    oclImageFormat.image_channel_order = CL_BGRA;
+    oclImageFormat.image_channel_order = CL_RGBA;
     oclImageFormat.image_channel_data_type = CL_UNSIGNED_INT8;
 
-    *devImagePtr = clCreateImage2D(
-        oclContext,
-        flags,
-        &oclImageFormat,
-        imageWidth,
-        imageHeight,
-        0,
-        imagePixels,
-        &oclResult
-    );
+    if (imagePixels != NULL)
+    {
+        *devImagePtr = clCreateImage2D(
+            oclContext,
+            flags,
+            &oclImageFormat,
+            imageWidth,
+            imageHeight,
+            0,
+            imagePixels,
+            &oclResult
+        );
+    }
+    else
+    {
+        *devImagePtr = clCreateImage2D(
+            oclContext,
+            flags,
+            &oclImageFormat,
+            imageWidth,
+            imageHeight,
+            0,
+            NULL,
+            &oclResult
+        );
+    }
+    
     oclExecStatus(oclResult);
 }
 
@@ -568,7 +585,7 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
     return gpuTime;
 }
 
-double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize, int workDimensions)
+double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t *oclLocalWorkSize, int workDimensions)
 {
     // Code
     oclExecStatus(clEnqueueNDRangeKernel(
@@ -577,30 +594,30 @@ double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize
         workDimensions,
         NULL,
         oclGlobalWorkSize,
-        &oclLocalWorkSize,
+        oclLocalWorkSize,
         0,
         NULL,
         &timeEvent));
 
     oclExecStatus(clFinish(oclCommandQueue));
 
-    oclExecStatus(clGetEventProfilingInfo(
-        timeEvent,
-        CL_PROFILING_COMMAND_START,
-        sizeof(startTime),
-        &startTime,
-        NULL));
+    // oclExecStatus(clGetEventProfilingInfo(
+    //     timeEvent,
+    //     CL_PROFILING_COMMAND_START,
+    //     sizeof(startTime),
+    //     &startTime,
+    //     NULL));
 
-    oclExecStatus(clGetEventProfilingInfo(
-        timeEvent,
-        CL_PROFILING_COMMAND_END,
-        sizeof(endTime),
-        &endTime,
-        NULL));
+    // oclExecStatus(clGetEventProfilingInfo(
+    //     timeEvent,
+    //     CL_PROFILING_COMMAND_END,
+    //     sizeof(endTime),
+    //     &endTime,
+    //     NULL));
 
-    double gpuTime = (double)(endTime - startTime) * 1.0e-6;
+    // double gpuTime = (double)(endTime - startTime) * 1.0e-6;
 
-    return gpuTime;
+    return 0;
 }
 
 cl_mem CLFW::oclCreateBuffer(int flag, size_t oclDataSize)
