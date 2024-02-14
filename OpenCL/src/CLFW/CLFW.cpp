@@ -329,7 +329,6 @@ void CLFW::oclGetDeviceProperties(void)
             sizeof(oclMemSize),
             &oclMemSize,
             NULL));
-        // std::cout << std::endl << "GPU Memory : " << (unsigned long long) oclMemSize / 1000000000 << " GB" << std::endl;
         if (oclMemSize > 1000000 && oclMemSize < 1000000000)
             std::cout << std::endl << "GPU Memory : " << (unsigned long long)oclMemSize / 1000000 << " MB" << std::endl;
         else
@@ -350,7 +349,7 @@ void CLFW::oclGetDeviceProperties(void)
 void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels)
 {
     // Code
-    oclImageFormat.image_channel_order = CL_BGRA;
+    oclImageFormat.image_channel_order = CL_RGBA;
     oclImageFormat.image_channel_data_type = CL_UNSIGNED_INT8;
 
     if (imagePixels != NULL)
@@ -383,11 +382,11 @@ void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageW
     oclExecStatus(oclResult);
 }
 
-void CLFW::oclReadImage(cl_mem *devImagePtr, size_t imageWidth, size_t imageHeight, unsigned char *hostArr)
+void CLFW::oclReadImage(cl_mem *devImagePtr, cv::Mat *hostImage)
 {
     // Variable Declarations
     const size_t origin[3] = { 0, 0, 0 };
-	const size_t region[3] = { imageWidth, imageHeight, 1 };
+	const size_t region[3] = { hostImage->rows, hostImage->cols, 1 };
 
     // Code
     oclExecStatus(clEnqueueReadImage(
@@ -398,7 +397,7 @@ void CLFW::oclReadImage(cl_mem *devImagePtr, size_t imageWidth, size_t imageHeig
         region,
         0,
         0,
-        hostArr,
+        hostImage->data,
         0,
         NULL,
         NULL

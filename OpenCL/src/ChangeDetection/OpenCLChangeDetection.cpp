@@ -175,31 +175,22 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
 
     const size_t origin[3] = { 0, 0, 0 };
 	const size_t region[3] = { static_cast<size_t>(oldImage.rows), static_cast<size_t>(oldImage.cols), 1 };
-
-	// result = clEnqueueReadImage(oclCommandQueue, d_highlightedChanges, CL_TRUE, origin, region, 0, 0, highlightedChangesMat->data, 0, NULL, NULL);
-	// if (result != CL_SUCCESS)
-	// {
-	// 	cerr << endl << "clEnqueueReadImage() Failed " << getErrorString(result) << "... Exiting !!!" << endl;
-	// 	cleanup();
-	// 	exit(EXIT_FAILURE);
-	// }
     
-	// cv::cvtColor(*highlightedChangesMat, *highlightedChangesMat, cv::COLOR_BGRA2RGBA);
-
-    // uchar_t* data = new uchar_t[oldImage.size().height * oldImage.size().width];
     uchar_t* data = new uchar_t[oldImage.rows * oldImage.cols * 4];
-
+    
     clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, data, 0, NULL, NULL));
-
-    // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
- 
+    
     outputImage.data = data;
-    // cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
-    //    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
-
+    
+    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
+    
     delete[] data;
     data = nullptr;
 
+
+    // clfw->oclReadImage(&deviceOutputImage, &outputImage);
+
+   
     std::cout << std::endl << "4" << std::endl;
 
     // Save Image

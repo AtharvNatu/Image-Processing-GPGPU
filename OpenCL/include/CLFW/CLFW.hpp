@@ -9,9 +9,9 @@
     #include <filesystem>
     #include <cstring>
     #include <cmath>
+    #include <opencv2/opencv.hpp>
     
     // CLFW Headers
-    #include "CLFWMacros.hpp"
     #include "CLFWTypes.hpp"
 
     class CLFW
@@ -68,7 +68,7 @@
 
             void oclGetDeviceProperties(void);
             void oclCreateImage(cl_mem *devPtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels);
-            void oclReadImage(cl_mem *devImagePtr, size_t imageWidth, size_t imageHeight, unsigned char *hostArr);
+            void oclReadImage(cl_mem *devImagePtr, cv::Mat *hostImage);
 
             void oclCreateContext(void);
             void oclCreateCommandQueue(void);
