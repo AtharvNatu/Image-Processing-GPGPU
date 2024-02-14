@@ -5,6 +5,8 @@
 *.bmp
 *.txt
 *.DS_STORE
+*.pdb
+*.ilk
 
 /CPU/App
 /CPU/App.exe
