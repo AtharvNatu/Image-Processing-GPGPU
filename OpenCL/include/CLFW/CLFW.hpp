@@ -45,6 +45,7 @@
             cl_int oclResult;
             cl_mem oclBuffer;
             cl_image_format oclImageFormat;
+            cl_image_desc oclImageDescriptor;
             cl_event timeEvent;
             cl_ulong startTime, endTime;
 

@@ -586,7 +586,6 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
 double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize, int workDimensions)
 {
     // Code
-    std::cout << std::endl << "2nd version " << std::endl;
     oclExecStatus(clEnqueueNDRangeKernel(
         oclCommandQueue,
         oclKernel,
