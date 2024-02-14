@@ -26,7 +26,7 @@ const char* oclChangeDetection =
 
 		"if (difference >= threshold)" \
 		"{" \
-			"finalPixelColor = (uint4)(0, 0, 255, 255);" \
+			"finalPixelColor = (uint4)(255, 0, 0, 255);" \
 		"}" \
 		"else" \
 		"{" \
@@ -183,10 +183,17 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     
 	// cv::cvtColor(*highlightedChangesMat, *highlightedChangesMat, cv::COLOR_BGRA2RGBA);
 
-    clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, oldImage.data, 0, NULL, NULL));
+    uchar_t* data = new uchar_t[oldImage.cols * oldImage.rows * 4];
+
+    clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, data, 0, NULL, NULL));
 
     // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
-    // cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
+ 
+    outputImage.data = data;
+    //    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
+
+    delete[] data;
+    data = nullptr;
 
     std::cout << std::endl << "4" << std::endl;
 

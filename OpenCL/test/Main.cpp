@@ -20,7 +20,7 @@ int main(int argc, char **argv)
         false
     );
 
-    std::cout << std::endl << "Time Required Using CUDA : "<< gpuTime << " seconds" << std::endl;
+    std::cout << std::endl << "Time Required Using OpenCL : "<< gpuTime << " seconds" << std::endl;
     
     delete oclChangeDetector;
     oclChangeDetector = nullptr;
