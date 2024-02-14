@@ -2,7 +2,7 @@ cls
 
 @echo off
 
-set dll=true
+set dll=false
 
 if %dll% == false (
 
@@ -11,20 +11,22 @@ if %dll% == false (
     
     cl.exe /openmp /std:c++20 /c /EHsc ^
         -I "C:\opencv\build\include" ^
+        -I "C:\KhronosOpenCL\include" ^
         "../test/Main.cpp" ^
         "../src/Common/*.cpp" ^
         "../src/ChangeDetection/*.cpp" ^
+        "../src/CLFW/CLFW.cpp"
     
-    link.exe /OUT:App.exe *.obj /LIBPATH:"C:\opencv\build\x64\vc16\lib" opencv_world480.lib vcompd.lib
+    link.exe /OUT:App.exe *.obj /LIBPATH:"C:\opencv\build\x64\vc16\lib" /LIBPATH:"C:\KhronosOpenCL\lib" opencv_world480.lib
 
     @move App.exe "../" > nul
 
     cd ../
 
     App.exe ^
-    ./images/input/1024_old.png ^
-    ./images/input/1024_new.png ^
-    ./images/output
+    "F:\Internship\Images\10000_old.png" ^
+    "F:\Internship\Images\10000_new.png" ^
+    "F:\Internship\Images" ^
   
 ) else (
    

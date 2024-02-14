@@ -31,7 +31,8 @@
             "name": "Windows",
             "includePath": [
                 "${workspaceFolder}/**",
-                "C:\\opencv\\build\\include"
+                "C:\\opencv\\build\\include",
+                "C:\\KhronosOpenCL\\include"
             ],
             "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/cl.exe",
             "cStandard": "c17",

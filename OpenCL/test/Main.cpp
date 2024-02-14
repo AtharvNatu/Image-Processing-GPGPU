@@ -7,10 +7,16 @@ int main(int argc, char **argv)
 
     std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
 
+    // double gpuTime = oclChangeDetector->detectChanges(
+    //     std::string(argv[1]),
+    //     std::string(argv[2]),
+    //     std::string(argv[3]),
+    //     false
+    // );
     double gpuTime = oclChangeDetector->detectChanges(
-        std::string(argv[1]),
-        std::string(argv[2]),
-        std::string(argv[3]),
+        "F:\\Internship\\Images\\10000_old.png",
+        "F:\\Internship\\Images\\10000_new.png",
+        "F:\\Internship\\Images",
         false
     );
 

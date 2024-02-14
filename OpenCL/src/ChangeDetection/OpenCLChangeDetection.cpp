@@ -160,18 +160,18 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     clfw->oclCreateKernel("oclChangeDetectionKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
     std::cout << std::endl << "2" << std::endl;
 
-    size_t globalSize[2] = 
-    {
-        static_cast<size_t>(oldImage.cols),
-        static_cast<size_t>(oldImage.rows)
-    };
+    // size_t globalSize[2] = 
+    // {
+    //     static_cast<size_t>(oldImage.cols),
+    //     static_cast<size_t>(oldImage.rows)
+    // };
 
-    gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
+    // gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
 
     std::cout << std::endl << "3" << std::endl;
 
-    clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
-    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
+    // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
+    // cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
 
     std::cout << std::endl << "4" << std::endl;
 
