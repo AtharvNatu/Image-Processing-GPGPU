@@ -18,7 +18,7 @@ then
     # For Executable
     echo "Compiling Source Files and Linking Libraries ... "
    
-    g++ -g -fsanitize=address -Wall -Wno-deprecated -Wno-deprecated-declarations -std=c++20 -o App \
+    g++ -Wall -Wno-deprecated -Wno-deprecated-declarations -std=c++20 -o App \
     ../test/Main.cpp ../src/ChangeDetection/*.cpp ../src/CLFW/CLFW.cpp ../src/Common/*.cpp \
     -I ${OPENCV_INCLUDE_PATH} \
     -I ${OPENCL_INCLUDE_PATH} \
@@ -37,7 +37,7 @@ then
     ./App \
     /home/atharv/Desktop/Internship/Images/Dubai_1.jpg \
     /home/atharv/Desktop/Internship/Images/Dubai_2.jpg \
-    /home/atharv/Desktop/Internship/Images/ \
+    /home/atharv/Desktop/Internship/Images \
 
 else
     clear

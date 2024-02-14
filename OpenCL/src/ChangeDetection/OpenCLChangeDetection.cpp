@@ -160,15 +160,30 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     clfw->oclCreateKernel("oclChangeDetectionKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
     std::cout << std::endl << "2" << std::endl;
 
-    // size_t globalSize[2] = 
-    // {
-    //     static_cast<size_t>(oldImage.cols),
-    //     static_cast<size_t>(oldImage.rows)
-    // };
+    size_t globalSize[2] = 
+    {
+        static_cast<size_t>(oldImage.cols),
+        static_cast<size_t>(oldImage.rows)
+    };
 
-    // gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
+    gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
 
     std::cout << std::endl << "3" << std::endl;
+
+    const size_t origin[3] = { 0, 0, 0 };
+	const size_t region[3] = { oldImage.rows, oldImage.cols, 1 };
+
+	// result = clEnqueueReadImage(oclCommandQueue, d_highlightedChanges, CL_TRUE, origin, region, 0, 0, highlightedChangesMat->data, 0, NULL, NULL);
+	// if (result != CL_SUCCESS)
+	// {
+	// 	cerr << endl << "clEnqueueReadImage() Failed " << getErrorString(result) << "... Exiting !!!" << endl;
+	// 	cleanup();
+	// 	exit(EXIT_FAILURE);
+	// }
+    
+	// cv::cvtColor(*highlightedChangesMat, *highlightedChangesMat, cv::COLOR_BGRA2RGBA);
+
+    clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, oldImage.data, 0, NULL, NULL));
 
     // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
     // cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);

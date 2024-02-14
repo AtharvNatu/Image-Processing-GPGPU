@@ -17,7 +17,7 @@
     class CLFW
     {
         // Member Variable Declarations
-        private:
+        public:
 
             // CLFW Kernel Data Types
             CLFWTypes *clfwTypes = nullptr;
