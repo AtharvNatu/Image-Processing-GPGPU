@@ -4,7 +4,7 @@ const char* oclChangeDetection =
 	
 	"__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;" \
 	
-	"__kernel void oclChangeDetection(__read_only image2d_t inputOld, __read_only image2d_t inputNew, __write_only image2d_t output, int threshold)" \
+	"__kernel void oclChangeDetectionKernel(__read_only image2d_t inputOld, __read_only image2d_t inputNew, __write_only image2d_t output, int threshold)" \
 	"{" \
 		"int2 gid = (int2)(get_global_id(0), get_global_id(1));" \
 		
@@ -35,8 +35,6 @@ const char* oclChangeDetection =
 		
 		"write_imageui(output, gid, finalPixelColor);" \
 	"}";
-
-
 
 
 // Member Function Definitions
@@ -159,7 +157,7 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     std::cout << std::endl << "1" << std::endl;
     clfw->oclCreateProgram(oclChangeDetection);
 
-    clfw->oclCreateKernel("oclChangeDetection", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
+    clfw->oclCreateKernel("oclChangeDetectionKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
     std::cout << std::endl << "2" << std::endl;
 
     size_t globalSize[2] = 
@@ -168,13 +166,14 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
         static_cast<size_t>(oldImage.rows)
     };
 
-    size_t localSize[2] = { 1, 1 };
-
-    gpuTime += clfw->oclExecuteKernel(globalSize, localSize, 2);
+    gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
 
     std::cout << std::endl << "3" << std::endl;
 
     clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
+    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
+
+    std::cout << std::endl << "4" << std::endl;
 
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);

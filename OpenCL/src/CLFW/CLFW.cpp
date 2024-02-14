@@ -31,8 +31,7 @@ void CLFW::oclExecStatus(cl_int ocl_param)
     // Code
     if (ocl_param != CL_SUCCESS)
     {
-        std::cerr << std::endl
-                  << "CLFW Error :  " << oclGetErrorString(ocl_param) << std::endl;
+        std::cerr << std::endl << "CLFW Error :  " << oclGetErrorString(ocl_param) << std::endl;
         this->uninitialize();
         exit(CLFW_FAILURE);
     }
@@ -585,19 +584,21 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
     return gpuTime;
 }
 
-double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t *oclLocalWorkSize, int workDimensions)
+double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize, int workDimensions)
 {
     // Code
+    std::cout << std::endl << "2nd version " << std::endl;
     oclExecStatus(clEnqueueNDRangeKernel(
         oclCommandQueue,
         oclKernel,
-        workDimensions,
+        2,
         NULL,
         oclGlobalWorkSize,
-        oclLocalWorkSize,
+        0,
         0,
         NULL,
-        &timeEvent));
+        NULL
+    ));
 
     oclExecStatus(clFinish(oclCommandQueue));
 
