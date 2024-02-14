@@ -2,7 +2,7 @@ cls
 
 @echo off
 
-set dll=true
+set dll=false
 
 if %dll% == false (
 
@@ -22,9 +22,10 @@ if %dll% == false (
     cd ../
 
     App.exe ^
-    ./images/input/1024_old.png ^
-    ./images/input/1024_new.png ^
-    ./images/output
+    "F:\Internship\Images\10000_old.png" ^
+    "F:\Internship\Images\10000_new.png" ^
+    "F:\Internship\Images" ^
+    MT
   
 ) else (
    

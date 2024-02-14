@@ -2,29 +2,33 @@ cls
 
 @echo off
 
-set dll=true
+set dll=false
 
 if %dll% == false (
 
     @REM For Executable
     cd bin/
-    
-    cl.exe /openmp /std:c++20 /c /EHsc ^
+
+    nvcc.exe -c -w --std=c++20 ^
         -I "C:\opencv\build\include" ^
-        "../test/Main.cpp" ^
-        "../src/Common/*.cpp" ^
-        "../src/ChangeDetection/*.cpp" ^
+        -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include" ^
+        "../test/Main.cu" ^
+        "../src/ChangeDetection/CudaChangeDetection.cu" ^
+        "../src/ChangeDetection/OtsuBinarizerCuda.cu" ^
+        "../src/ChangeDetection/ImageUtils.cpp" ^
+        "../src/Common/CudaUtils.cu" ^
+        "../src/Common/Logger.cpp" ^
     
-    link.exe /OUT:App.exe *.obj /LIBPATH:"C:\opencv\build\x64\vc16\lib" opencv_world480.lib vcompd.lib
+    link.exe /DEBUG /OUT:App.exe *.obj /LIBPATH:"C:\opencv\build\x64\vc16\lib" /LIBPATH:"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\lib\x64" opencv_world480.lib cudart.lib 
 
     @move App.exe "../" > nul
 
     cd ../
 
     App.exe ^
-    ./images/input/1024_old.png ^
-    ./images/input/1024_new.png ^
-    ./images/output
+    "F:\Internship\Images\10000_old.png" ^
+    "F:\Internship\Images\10000_new.png" ^
+    "F:\Internship\Images"
   
 ) else (
    

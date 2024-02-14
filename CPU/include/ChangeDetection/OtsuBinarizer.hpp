@@ -21,6 +21,9 @@ class OtsuBinarizerCPU
         StopWatchInterface *cpuTimer = nullptr;
 
     public:
+
+        OtsuBinarizerCPU(void);
+        ~OtsuBinarizerCPU();
         
         /// @brief Generate Histogram From Input Image
         /// @param inputImage cv::Mat Pointer to input image
