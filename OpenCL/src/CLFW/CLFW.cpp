@@ -350,7 +350,7 @@ void CLFW::oclGetDeviceProperties(void)
 void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels)
 {
     // Code
-    oclImageFormat.image_channel_order = CL_RGBA;
+    oclImageFormat.image_channel_order = CL_BGRA;
     oclImageFormat.image_channel_data_type = CL_UNSIGNED_INT8;
 
     if (imagePixels != NULL)

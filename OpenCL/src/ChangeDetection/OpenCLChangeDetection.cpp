@@ -8,7 +8,7 @@ const char* oclChangeDetection =
 	"{" \
 		"int2 gid = (int2)(get_global_id(0), get_global_id(1));" \
 		
-		"uint3 oldPixel, newPixel, finalPixelColor;" \
+		"uint4 oldPixel, newPixel, finalPixelColor;" \
 		"uint oldGrayVal, newGrayVal, difference;" \
 		
 		"int2 sizeOld = get_image_dim(inputOld);" \
@@ -17,25 +17,26 @@ const char* oclChangeDetection =
 		"if (all(gid < sizeOld) && all(gid < sizeNew))" \
 		"{" \
 			"oldPixel = read_imageui(inputOld, sampler, gid);" \
-			"oldGrayVal = (0.3 * oldPixel.x) + (0.59 * oldPixel.y) + (0.11 * oldPixel.z);" \
+			"oldGrayVal = (0.299 * oldPixel.x) + (0.587 * oldPixel.y) + (0.114 * oldPixel.z);" \
 			"newPixel = read_imageui(inputNew, sampler, gid);" \
-			"newGrayVal = (0.3 * newPixel.x) + (0.59 * newPixel.y) + (0.11 * newPixel.z);" \
+			"newGrayVal = (0.299 * newPixel.x) + (0.587 * newPixel.y) + (0.114 * newPixel.z);" \
 		"}" \
 
 		"difference = abs_diff(oldGrayVal, newGrayVal);" \
 
 		"if (difference >= threshold)" \
 		"{" \
-			"finalPixelColor = (uint3)(255, 0, 0);" \
+			"finalPixelColor = (uint4)(0, 0, 255, 255);" \
 		"}" \
-		"else" \
+        "else" \
 		"{" \
-			"finalPixelColor = (uint3)(oldGrayVal, oldGrayVal, oldGrayVal);" \
+			"finalPixelColor = (uint4)(oldGrayVal, oldGrayVal, oldGrayVal, 255);" \
 		"}" \
 		
 		"write_imageui(output, gid, finalPixelColor);" \
 	"}";
 
+		
 
 // Member Function Definitions
 
@@ -185,13 +186,15 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     
 	// cv::cvtColor(*highlightedChangesMat, *highlightedChangesMat, cv::COLOR_BGRA2RGBA);
 
-    uchar_t* data = new uchar_t[oldImage.cols * oldImage.rows * 3];
+    // uchar_t* data = new uchar_t[oldImage.size().height * oldImage.size().width];
+    uchar_t* data = new uchar_t[oldImage.rows * oldImage.cols * 4];
 
     clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, data, 0, NULL, NULL));
 
     // clfw->oclReadImage(&deviceOutputImage, oldImage.cols, oldImage.rows, outputImage.data);
  
     outputImage.data = data;
+    // cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
     //    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
 
     delete[] data;
