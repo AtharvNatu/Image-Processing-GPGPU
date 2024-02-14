@@ -8,7 +8,7 @@ const char* oclChangeDetection =
 	"{" \
 		"int2 gid = (int2)(get_global_id(0), get_global_id(1));" \
 		
-		"uint4 oldPixel, newPixel, finalPixelColor;" \
+		"uint3 oldPixel, newPixel, finalPixelColor;" \
 		"uint oldGrayVal, newGrayVal, difference;" \
 		
 		"int2 sizeOld = get_image_dim(inputOld);" \
@@ -26,11 +26,11 @@ const char* oclChangeDetection =
 
 		"if (difference >= threshold)" \
 		"{" \
-			"finalPixelColor = (uint4)(255, 0, 0, 255);" \
+			"finalPixelColor = (uint3)(255, 0, 0);" \
 		"}" \
 		"else" \
 		"{" \
-			"finalPixelColor = (uint4)(oldGrayVal, oldGrayVal, oldGrayVal, 255);" \
+			"finalPixelColor = (uint3)(oldGrayVal, oldGrayVal, oldGrayVal);" \
 		"}" \
 		
 		"write_imageui(output, gid, finalPixelColor);" \
@@ -117,6 +117,8 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
         exit(FILE_ERROR);
     }
 
+    std::cout << std::endl << "Image Channels = " << oldImage.channels() << std::endl;
+
     //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
@@ -171,7 +173,7 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     std::cout << std::endl << "3" << std::endl;
 
     const size_t origin[3] = { 0, 0, 0 };
-	const size_t region[3] = { oldImage.rows, oldImage.cols, 1 };
+	const size_t region[3] = { static_cast<size_t>(oldImage.rows), static_cast<size_t>(oldImage.cols), 1 };
 
 	// result = clEnqueueReadImage(oclCommandQueue, d_highlightedChanges, CL_TRUE, origin, region, 0, 0, highlightedChangesMat->data, 0, NULL, NULL);
 	// if (result != CL_SUCCESS)
@@ -183,7 +185,7 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     
 	// cv::cvtColor(*highlightedChangesMat, *highlightedChangesMat, cv::COLOR_BGRA2RGBA);
 
-    uchar_t* data = new uchar_t[oldImage.cols * oldImage.rows * 4];
+    uchar_t* data = new uchar_t[oldImage.cols * oldImage.rows * 3];
 
     clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, data, 0, NULL, NULL));
 
@@ -199,6 +201,8 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
 
     // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
+
+    std::cout << std::endl << "5" << std::endl;
 
     outputImage.release();
     newImage.release();

@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <opencv2/opencv.hpp>
 #include <cmath>
-#include <omp.h>
 
 #include "../Common/Macros.hpp"
 

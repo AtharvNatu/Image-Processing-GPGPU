@@ -29,7 +29,11 @@ then
     cd ..
 
     echo "Running Executable ... "
-    ./App
+    ./App \
+    /Users/atharv/Desktop/Internship/Images/Dubai_1.jpg \
+    /Users/atharv/Desktop/Internship/Images/Dubai_2.jpg \
+    /Users/atharv/Desktop/Internship/Images \
+    MT
 
 else
     clear

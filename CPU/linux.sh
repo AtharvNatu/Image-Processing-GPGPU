@@ -28,7 +28,7 @@ then
     ./App \
     /home/atharv/Desktop/Internship/Images/10000_old.png \
     /home/atharv/Desktop/Internship/Images/10000_new.png \
-    /home/atharv/Desktop/Internship/Images/ \
+    /home/atharv/Desktop/Internship/Images \
     MT
 
 else
