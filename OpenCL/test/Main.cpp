@@ -14,8 +14,8 @@ int main(int argc, char **argv)
     //     false
     // );
     double gpuTime = oclChangeDetector->detectChanges(
-        "/home/atharv/Desktop/Internship/Images/1024_old.png",
-        "/home/atharv/Desktop/Internship/Images/1024_new.png",
+        "/home/atharv/Desktop/Internship/Images/10000_old.png",
+        "/home/atharv/Desktop/Internship/Images/10000_new.png",
         "/home/atharv/Desktop/Internship/Images",
         false
     );
