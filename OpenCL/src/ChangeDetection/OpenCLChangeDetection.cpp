@@ -1,10 +1,10 @@
 #include "../../include/ChangeDetection/OpenCLChangeDetection.hpp"
 
-const char* oclChangeDetection =
+const char* grayscaleChangeDetection =
 	
 	"__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;" \
 	
-	"__kernel void oclChangeDetectionKernel(__read_only image2d_t inputOld, __read_only image2d_t inputNew, __write_only image2d_t output, int threshold)" \
+	"__kernel void grayscaleKernel(__read_only image2d_t inputOld, __read_only image2d_t inputNew, __write_only image2d_t output, int threshold)" \
 	"{" \
 		"int2 gid = (int2)(get_global_id(0), get_global_id(1));" \
 		
@@ -36,7 +36,41 @@ const char* oclChangeDetection =
 		"write_imageui(output, gid, finalPixelColor);" \
 	"}";
 
+const char* binaryChangeDetection =
+	
+	"__constant sampler_t sampler = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS_CLAMP_TO_EDGE | CLK_FILTER_LINEAR;" \
+	
+	"__kernel void binaryKernel(__read_only image2d_t inputOld, __read_only image2d_t inputNew, __write_only image2d_t output, int threshold)" \
+	"{" \
+		"int2 gid = (int2)(get_global_id(0), get_global_id(1));" \
 		
+		"uint4 oldPixel, newPixel, finalPixelColor;" \
+		"uint oldGrayVal, newGrayVal, difference;" \
+		
+		"int2 sizeOld = get_image_dim(inputOld);" \
+		"int2 sizeNew = get_image_dim(inputNew);" \
+
+		"if (all(gid < sizeOld) && all(gid < sizeNew))" \
+		"{" \
+			"oldPixel = read_imageui(inputOld, sampler, gid);" \
+			"oldGrayVal = (0.299 * oldPixel.x) + (0.587 * oldPixel.y) + (0.114 * oldPixel.z);" \
+			"newPixel = read_imageui(inputNew, sampler, gid);" \
+			"newGrayVal = (0.299 * newPixel.x) + (0.587 * newPixel.y) + (0.114 * newPixel.z);" \
+		"}" \
+
+		"difference = abs_diff(oldGrayVal, newGrayVal);" \
+
+		"if (difference >= threshold)" \
+		"{" \
+			"finalPixelColor = (uint4)(255, 255, 255, 255);" \
+		"}" \
+        "else" \
+		"{" \
+			"finalPixelColor = (uint4)(0, 0, 0, 255);" \
+		"}" \
+		
+		"write_imageui(output, gid, finalPixelColor);" \
+	"}";
 
 // Member Function Definitions
 
@@ -123,7 +157,7 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     cv::Mat newAlphaImage = imageUtils->getQuadChannelImage(&newImage);
 
     //* Empty Output Image
-    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC4);
+    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC4, cv::Scalar(0, 0, 0, 0));
 
     //* 2. Ostu Thresholding
     clfw->initialize();
@@ -142,9 +176,16 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     clfw->oclCreateImage(&deviceNewImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, newAlphaImage.data);
     clfw->oclCreateImage(&deviceOutputImage, CL_MEM_WRITE_ONLY, width, height, NULL);
 
-    clfw->oclCreateProgram(oclChangeDetection);
-
-    clfw->oclCreateKernel("oclChangeDetectionKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
+    if (grayscale)
+    {
+        clfw->oclCreateProgram(grayscaleChangeDetection);
+        clfw->oclCreateKernel("grayscaleKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
+    }
+    else
+    {
+        clfw->oclCreateProgram(binaryChangeDetection);
+        clfw->oclCreateKernel("binaryKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
+    }
 
     size_t globalSize[2] = 
     {
