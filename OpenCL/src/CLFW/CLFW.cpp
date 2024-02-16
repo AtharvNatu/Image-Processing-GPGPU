@@ -382,11 +382,11 @@ void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageW
     oclExecStatus(oclResult);
 }
 
-void CLFW::oclReadImage(cl_mem *devImagePtr, cv::Mat *hostImage)
+void CLFW::oclReadImage(cl_mem *devImagePtr, int imageWidth, int imageHeight, uchar_t* imagePixels)
 {
     // Variable Declarations
     const size_t origin[3] = { 0, 0, 0 };
-	const size_t region[3] = { hostImage->rows, hostImage->cols, 1 };
+	const size_t region[3] = { static_cast<size_t>(imageWidth), static_cast<size_t>(imageHeight), 1 };
 
     // Code
     oclExecStatus(clEnqueueReadImage(
@@ -397,7 +397,7 @@ void CLFW::oclReadImage(cl_mem *devImagePtr, cv::Mat *hostImage)
         region,
         0,
         0,
-        hostImage->data,
+        imagePixels,
         0,
         NULL,
         NULL

@@ -102,7 +102,7 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     // Load Images
     cv::Mat oldImage = imageUtils->loadImage(oldImagePath);
     cv::Mat newImage = imageUtils->loadImage(newImagePath);
-
+    
     //* 1. Preprocessing
     if (oldImage.cols != newImage.cols || oldImage.rows != newImage.rows)
     {
@@ -117,9 +117,13 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
 
         exit(FILE_ERROR);
     }
+    
+    //* Convert to 32-bit images
+    cv::Mat oldAlphaImage = imageUtils->getQuadChannelImage(&oldImage);
+    cv::Mat newAlphaImage = imageUtils->getQuadChannelImage(&newImage);
 
-    //* Empty Output Image => CV_8UC3 = 3-channel RGB Image
-    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
+    //* Empty Output Image
+    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC4);
 
     //* 2. Ostu Thresholding
     clfw->initialize();
@@ -131,118 +135,31 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     // int meanThreshold = (threshold1 + threshold2) / 2;
 
     //* 3. Differencing
-    std::cout << std::endl << "Init 1" << std::endl;
-    clfw->oclCreateImage(
-        &deviceOldImage,
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        oldImage.cols,
-        oldImage.rows,
-        oldImage.data
-    );
-    std::cout << std::endl << "Init 2" << std::endl;
-    clfw->oclCreateImage(
-        &deviceNewImage,
-        CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        newImage.cols,
-        newImage.rows,
-        newImage.data
-    );
+    int width = oldImage.cols;
+    int height = oldImage.rows;
 
-    clfw->oclCreateImage(
-        &deviceOutputImage,
-        CL_MEM_WRITE_ONLY,
-        oldImage.cols,
-        oldImage.rows,
-        NULL
-    );
+    clfw->oclCreateImage(&deviceOldImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, oldAlphaImage.data);
+    clfw->oclCreateImage(&deviceNewImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, newAlphaImage.data);
+    clfw->oclCreateImage(&deviceOutputImage, CL_MEM_WRITE_ONLY, width, height, NULL);
 
-    std::cout << std::endl << "1" << std::endl;
     clfw->oclCreateProgram(oclChangeDetection);
 
     clfw->oclCreateKernel("oclChangeDetectionKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
-    std::cout << std::endl << "2" << std::endl;
 
     size_t globalSize[2] = 
     {
-        static_cast<size_t>(oldImage.cols),
-        static_cast<size_t>(oldImage.rows)
+        static_cast<size_t>(width),
+        static_cast<size_t>(height)
     };
-
     gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
 
-    std::cout << std::endl << "3" << std::endl;
+    clfw->oclReadImage(&deviceOutputImage, width, height, outputImage.data);
 
-    const size_t origin[3] = { 0, 0, 0 };
-	const size_t region[3] = { static_cast<size_t>(oldImage.rows), static_cast<size_t>(oldImage.cols), 1 };
-    
-    uchar_t* data = new uchar_t[oldImage.rows * oldImage.cols * 4];
-    
-    clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, data, 0, NULL, NULL));
-    
-    outputImage.data = data;
-    
-    cv::cvtColor(outputImage, outputImage, cv::COLOR_BGRA2RGBA);
-    
-    delete[] data;
-    data = nullptr;
-
-
-    // clfw->oclReadImage(&deviceOutputImage, &outputImage);
-
-   
-    std::cout << std::endl << "4" << std::endl;
-
-    // Save Image
     imageUtils->saveImage(outputImagePath, &outputImage);
 
-    std::cout << std::endl << "5" << std::endl;
-
-    // int width = oldImage.cols;
-    // int height = oldImage.rows;
-    // uchar_t *oldData = (uchar_t*)oldImage.data;
-    // uchar_t *newData = (uchar_t*)oldImage.data;
-
-    // cv::Mat outputImage(height, width, CV_8UC3, cv::Scalar(0, 0, 0));
-    // uchar_t *buffer = new uchar_t[width * height * 4];
-
-    // clfw->oclImageFormat.image_channel_order = CL_RGBA;
-    // clfw->oclImageFormat.image_channel_data_type = CL_UNSIGNED_INT8;
-
-    // size_t origin[3] = { 0, 0, 0 };
-    // size_t region[3] = { static_cast<size_t>(width), static_cast<size_t>(height), 1};
-
-    // deviceOldImage = clCreateImage2D(clfw->oclContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &clfw->oclImageFormat, width, height, 0, oldData, &clfw->oclResult);
-    // clfw->oclExecStatus(clfw->oclResult);
-
-    // deviceNewImage = clCreateImage2D(clfw->oclContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, &clfw->oclImageFormat, width, height, 0, newData, &clfw->oclResult);
-    // clfw->oclExecStatus(clfw->oclResult);
-
-    // deviceOutputImage = clCreateImage2D(clfw->oclContext, CL_MEM_WRITE_ONLY, &clfw->oclImageFormat, width, height, 0, NULL, &clfw->oclResult);
-    // clfw->oclExecStatus(clfw->oclResult);
-
-    // clfw->oclCreateProgram(oclChangeDetection);
-
-    // clfw->oclCreateKernel("oclChangeDetectionKernel", "bbbi", deviceOldImage, deviceNewImage, deviceOutputImage, 90);
-
-    // size_t globalSize[2] = 
-    // {
-    //     static_cast<size_t>(oldImage.cols),
-    //     static_cast<size_t>(oldImage.rows)
-    // };
-
-    // gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
-
-    // clfw->oclExecStatus(clEnqueueReadImage(clfw->oclCommandQueue, deviceOutputImage, CL_TRUE, origin, region, 0, 0, buffer, 0, NULL, NULL));
-
-    // outputImage.data = (uchar_t*)buffer;
-    // outputImage.convertTo(outputImage, cv::COLOR_RGBA2BGRA);
-
-    // imageUtils->saveImage(outputImagePath, &outputImage);
-
-    // delete[] buffer;
-    // buffer = nullptr;
-
     outputImage.release();
+    newAlphaImage.release();
+    oldAlphaImage.release();
     newImage.release();
     oldImage.release();
 

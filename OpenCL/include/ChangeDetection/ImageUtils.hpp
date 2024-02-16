@@ -27,5 +27,7 @@ class ImageUtils
         /// @param image Input Image
         /// @return Vector containing raw pixel data
         std::vector<uchar_t> getRawPixelData(cv::Mat* image);
+
+        cv::Mat getQuadChannelImage(cv::Mat *rgbImage);
 };
 

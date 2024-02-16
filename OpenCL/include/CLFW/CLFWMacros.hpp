@@ -16,3 +16,5 @@
 #elif defined(__APPLE__)
     #define CLFW_OS 3
 #endif
+
+typedef unsigned char uchar_t;

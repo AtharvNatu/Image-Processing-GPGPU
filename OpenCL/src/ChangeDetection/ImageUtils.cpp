@@ -60,4 +60,31 @@ std::vector<uchar_t> ImageUtils::getRawPixelData(cv::Mat* image)
     return imageVector;
 }
 
+cv::Mat ImageUtils::getQuadChannelImage(cv::Mat *rgbImage)
+{
+    // Variable Declarations
+    cv::Mat rgbChannels[3];
+    std::vector<cv::Mat> channels;
+
+    // Code
+    cv::Mat alphaImage(rgbImage->rows, rgbImage->cols, CV_8UC4);
+
+    // Split 3-channel image into RGB channels
+    cv::split(*rgbImage, rgbChannels);
+
+    // Create an alpha channel
+    cv::Mat alphaChannel(rgbImage->size(), CV_8UC1, cv::Scalar(255));
+
+    // Merge RGB channels and add Alpha Channel
+    channels.push_back(rgbChannels[0]);
+    channels.push_back(rgbChannels[1]);
+    channels.push_back(rgbChannels[2]);
+    channels.push_back(alphaChannel);
+
+    // Merge channels into 4-channel image
+    cv::merge(channels, alphaImage);
+
+    return alphaImage;
+
+}
 
