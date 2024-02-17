@@ -69,7 +69,7 @@
 
             void oclGetDeviceProperties(void);
             void oclCreateImage(cl_mem *devPtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels);
-            void oclReadImage(cl_mem *devImagePtr, int imageWidth, int imageHeight, uchar_t* imagePixels);
+            void oclReadImage(cl_mem *devImagePtr, int imageWidth, int imageHeight, unsigned char *imagePixels);
 
             void oclCreateContext(void);
             void oclCreateCommandQueue(void);

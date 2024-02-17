@@ -382,7 +382,7 @@ void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageW
     oclExecStatus(oclResult);
 }
 
-void CLFW::oclReadImage(cl_mem *devImagePtr, int imageWidth, int imageHeight, uchar_t* imagePixels)
+void CLFW::oclReadImage(cl_mem *devImagePtr, int imageWidth, int imageHeight, unsigned char *imagePixels)
 {
     // Variable Declarations
     const size_t origin[3] = { 0, 0, 0 };
@@ -581,7 +581,10 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
         NULL
     ));
 
-    double gpuTime = (double)(endTime - startTime) * 1.0e-6;
+    double gpuTime = (double)(endTime - startTime);
+
+    //* Convert nanoseconds to seconds
+    gpuTime *= 1.0e-9;
 
     return gpuTime;
 }

@@ -17,4 +17,3 @@
     #define CLFW_OS 3
 #endif
 
-typedef unsigned char uchar_t;
