@@ -1,7 +1,7 @@
 #include "../../include/ChangeDetection/CudaChangeDetection.cuh"
 
 // CUDA Kernel Definitions
-__global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size)
+__global__ void cudaChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size, int grayscale)
 {
     // Variable Declarations
     uchar_t oldGreyValue, newGreyValue, difference;
@@ -25,50 +25,29 @@ __global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uch
 
         difference = abs(oldGreyValue - newGreyValue);
 
-        if (difference >= threshold)
+        if (grayscale)
         {
-            outputImage[pixelId].x = 255;
-            outputImage[pixelId].y = 0;
-            outputImage[pixelId].z = 0;
+            if (difference >= threshold)
+            {
+                outputImage[pixelId].x = 255;
+                outputImage[pixelId].y = 0;
+                outputImage[pixelId].z = 0;
+            }
+            else
+            {
+                outputImage[pixelId].x = oldGreyValue;
+                outputImage[pixelId].y = oldGreyValue;
+                outputImage[pixelId].z = oldGreyValue;
+            }
         }
         else
         {
-            outputImage[pixelId].x = oldGreyValue;
-            outputImage[pixelId].y = oldGreyValue;
-            outputImage[pixelId].z = oldGreyValue;
-        }
-    }
-}
-
-__global__ void binaryChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size)
-{
-    // Variable Declarations
-    uchar_t oldGreyValue, newGreyValue, difference;
-
-    // Code
-    int pixelId = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    if (pixelId < size)
-    {
-        oldGreyValue = (uchar_t)(
-                        (0.299 * (uchar_t)oldImage[pixelId].x) +
-                        (0.587 * (uchar_t)oldImage[pixelId].y) +
-                        (0.114 * (uchar_t)oldImage[pixelId].z)
-                    );
-
-        newGreyValue = (uchar_t)(
-                        (0.299 * (uchar_t)newImage[pixelId].x) +
-                        (0.587 * (uchar_t)newImage[pixelId].y) +
-                        (0.114 * (uchar_t)newImage[pixelId].z)
-                    );
-
-        difference = abs(oldGreyValue - newGreyValue);
-
-        if (difference >= threshold)
-        {
-            outputImage[pixelId].x = 255;
-            outputImage[pixelId].y = 255;
-            outputImage[pixelId].z = 255;
+            if (difference >= threshold)
+            {
+                outputImage[pixelId].x = 255;
+                outputImage[pixelId].y = 255;
+                outputImage[pixelId].z = 255;
+            }
         }
     }
 }
@@ -182,9 +161,9 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     sdkStartTimer(&cudaTimer);
     {   
         if (grayscale)
-            grayscaleChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size);
+            cudaChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size, 1);
         else
-            binaryChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size);
+            cudaChangeDetection<<<BLOCKS, THREADS_PER_BLOCK>>>(deviceOldImage, deviceNewImage, deviceOutputImage, meanThreshold, size, 0);
     }
     sdkStopTimer(&cudaTimer);
     gpuTime += sdkGetTimerValue(&cudaTimer);

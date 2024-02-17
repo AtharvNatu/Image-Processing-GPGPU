@@ -64,21 +64,13 @@ class CudaChangeDetection
 
 //* CUDA Kernel Prototypes
 
-// @brief CUDA Grayscale Change Detection Kernel | Output Image format : Grayscale (RED Color Changes)
+// @brief CUDA Change Detection Kernel | Output Image format : Grayscale (RED Color Changes) or Binary (WHITE Color Changes)
 /// @param oldImage Old Image Pixel Array in uchar3 Format
 /// @param newImage New Image Pixel Array in uchar3 Format
 /// @param outputImage Output Image Pixel Array (Blank) in uchar3 Format
 /// @param threshold  Threshold computed using Otsu Binarizer
 /// @param size  Size of Old Image Pixel Array
-__global__ void grayscaleChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size);
-
-// @brief CUDA Binary Change Detection Kernel | Output Image format : Binary (WHITE Color Changes)
-/// @param oldImage Old Image Pixel Array in uchar3 Format
-/// @param newImage New Image Pixel Array in uchar3 Format
-/// @param outputImage Output Image Pixel Array (Blank) in uchar3 Format
-/// @param threshold  Threshold computed using Otsu Binarizer
-/// @param size  Size of Old Image Pixel Array
-__global__ void binaryChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size);
+__global__ void cudaChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size, int grayscale);
 
 
 
