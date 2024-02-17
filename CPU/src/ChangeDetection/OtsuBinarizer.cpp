@@ -29,9 +29,9 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
                 int segmentSize = MAX_PIXEL_VALUE / threadCount;
 
                 #pragma omp for schedule(static, segmentSize)
-                for (int i = 0; i < totalPixels; i++)
+                for (size_t i = 0; i < totalPixels; i++)
                 {
-                    pixelValue = imageVector[i];
+                    pixelValue = (int)imageVector[i];
                     #pragma omp atomic
                     histogram[pixelValue]++;
                 }
