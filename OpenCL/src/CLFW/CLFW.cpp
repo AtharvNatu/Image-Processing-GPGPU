@@ -560,7 +560,8 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
         &oclLocalWorkSize,
         0,
         NULL,
-        &timeEvent));
+        &timeEvent
+    ));
 
     oclExecStatus(clFinish(oclCommandQueue));
 
@@ -569,14 +570,16 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
         CL_PROFILING_COMMAND_START,
         sizeof(startTime),
         &startTime,
-        NULL));
+        NULL
+    ));
 
     oclExecStatus(clGetEventProfilingInfo(
         timeEvent,
         CL_PROFILING_COMMAND_END,
         sizeof(endTime),
         &endTime,
-        NULL));
+        NULL
+    ));
 
     double gpuTime = (double)(endTime - startTime) * 1.0e-6;
 
@@ -599,22 +602,29 @@ double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize
     ));
 
     oclExecStatus(clFinish(oclCommandQueue));
+    
+    oclExecStatus(clWaitForEvents(1, &timeEvent));
 
     oclExecStatus(clGetEventProfilingInfo(
         timeEvent,
         CL_PROFILING_COMMAND_START,
         sizeof(startTime),
         &startTime,
-        NULL));
+        NULL
+    ));
 
     oclExecStatus(clGetEventProfilingInfo(
         timeEvent,
         CL_PROFILING_COMMAND_END,
         sizeof(endTime),
         &endTime,
-        NULL));
+        NULL
+    ));
 
-    double gpuTime = (double)(endTime - startTime) * 1.0e-6;
+    double gpuTime = (double)(endTime - startTime);
+    
+    //* Convert nanoseconds to seconds
+    gpuTime *= 1.0e-9;
 
     return gpuTime;
 }

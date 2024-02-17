@@ -28,6 +28,9 @@ class ImageUtils
         /// @return Vector containing raw pixel data
         std::vector<uchar_t> getRawPixelData(cv::Mat* image);
 
+        /// @brief Convert 3-channel image to 4-channel image
+        /// @param rgbImage 3-channel input image
+        /// @return 4-channel output image
         cv::Mat getQuadChannelImage(cv::Mat *rgbImage);
 };
 

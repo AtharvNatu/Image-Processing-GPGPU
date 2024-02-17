@@ -11,7 +11,7 @@ int main(int argc, char **argv)
         std::string(argv[1]),
         std::string(argv[2]),
         std::string(argv[3]),
-        false
+        true
     );
     
     std::cout << std::endl << "Time Required Using OpenCL : "<< gpuTime << " seconds" << std::endl;
