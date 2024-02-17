@@ -265,9 +265,9 @@ void CLFW::oclGetDeviceProperties(void)
             &oclMemSize,
             NULL));
         if (oclMemSize > 1000000 && oclMemSize < 1000000000)
-            std::cout << std::endl << "GPU Memory : " << (unsigned long long)oclMemSize / 1000000 << " MB" << std::endl;
+            std::cout << std::endl << "GPU Memory : " << (int)oclMemSize / (1024 * 1024) << " MB" << std::endl;
         else
-            std::cout << std::endl << "GPU Memory : " << (unsigned long long)oclMemSize / 1000000000 << " GB" << std::endl;
+            std::cout << std::endl << "GPU Memory : " << (int)oclMemSize / 1e+9 << " GB" << std::endl;
 
         oclExecStatus(clGetDeviceInfo(
             oclDeviceId,

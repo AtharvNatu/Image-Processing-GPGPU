@@ -84,6 +84,8 @@ cv::Mat ImageUtils::getQuadChannelImage(cv::Mat *rgbImage)
     // Merge channels into 4-channel image
     cv::merge(channels, alphaImage);
 
+    rgbImage->release();
+
     return alphaImage;
 
 }

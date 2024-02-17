@@ -129,13 +129,16 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
 
         exit(FILE_ERROR);
     }
+
+    int width = oldImage.cols;
+    int height = oldImage.rows;
     
     //* Convert to 32-bit images
     cv::Mat oldAlphaImage = imageUtils->getQuadChannelImage(&oldImage);
     cv::Mat newAlphaImage = imageUtils->getQuadChannelImage(&newImage);
 
     //* Empty Output Image
-    cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC4, cv::Scalar(0, 0, 0, 0));
+    cv::Mat outputImage(width, height, CV_8UC4, cv::Scalar(0, 0, 0, 0));
 
     //* 2. Ostu Thresholding
     clfw->initialize();
@@ -147,9 +150,6 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     // int meanThreshold = (threshold1 + threshold2) / 2;
 
     //* 3. Differencing
-    int width = oldImage.cols;
-    int height = oldImage.rows;
-
     clfw->oclCreateImage(&deviceOldImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, oldAlphaImage.data);
     clfw->oclCreateImage(&deviceNewImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, newAlphaImage.data);
     clfw->oclCreateImage(&deviceOutputImage, CL_MEM_WRITE_ONLY, width, height, NULL);
@@ -175,8 +175,6 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     outputImage.release();
     newAlphaImage.release();
     oldAlphaImage.release();
-    newImage.release();
-    oldImage.release();
 
     clfw->oclReleaseBuffer(deviceOutputImage);
     clfw->oclReleaseBuffer(deviceNewImage);
