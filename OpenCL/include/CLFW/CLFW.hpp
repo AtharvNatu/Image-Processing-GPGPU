@@ -86,6 +86,7 @@
 
             cl_mem oclCreateBuffer(int flag, size_t oclDataSize);
             void oclWriteBuffer(cl_mem oclDataBuffer, size_t oclDataSize, void* hostPtr);
+            void oclFillBuffer(cl_mem oclDataBuffer, const void *pattern, size_t patternSize, size_t offset, size_t size);
             void oclReadBuffer(cl_mem oclDataBuffer, size_t oclDataSize, void* hostPtr);
             void oclReleaseBuffer(cl_mem oclDataBuffer);
     };

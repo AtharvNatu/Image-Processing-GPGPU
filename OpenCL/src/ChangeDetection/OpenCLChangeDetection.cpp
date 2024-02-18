@@ -140,35 +140,33 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     //* Empty Output Image
     cv::Mat outputImage(width, height, CV_8UC4, cv::Scalar(0, 0, 0, 0));
 
-    //* 2. Ostu Thresholding
     clfw->initialize();
 
-    // size_t pixelCount = 0;
-    // binarizer->computeHistogram(&oldImage, imageUtils, clfw, &pixelCount, &gpuTime);
-    // int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, multiThreading, threadCount, &cpuTime);
-    // int threshold2 = binarizer->computeThreshold(&newImage, imageUtils, multiThreading, threadCount, &cpuTime);
-    // int meanThreshold = (threshold1 + threshold2) / 2;
+    //* 2. Ostu Thresholding
+    int threshold1 = binarizer->computeThreshold(&oldAlphaImage, imageUtils, clfw, &gpuTime);
+    int threshold2 = binarizer->computeThreshold(&newAlphaImage, imageUtils, clfw, &gpuTime);
+    int meanThreshold = (threshold1 + threshold2) / 2;
 
     //* 3. Differencing
-    clfw->oclCreateImage(&deviceOldImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, oldAlphaImage.data);
-    clfw->oclCreateImage(&deviceNewImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, newAlphaImage.data);
-    clfw->oclCreateImage(&deviceOutputImage, CL_MEM_WRITE_ONLY, width, height, NULL);
+    // clfw->oclCreateImage(&deviceOldImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, oldAlphaImage.data);
+    // clfw->oclCreateImage(&deviceNewImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, newAlphaImage.data);
+    // clfw->oclCreateImage(&deviceOutputImage, CL_MEM_WRITE_ONLY, width, height, NULL);
 
-    clfw->oclCreateProgram(oclChangeDetection);
+    // clfw->oclCreateProgram(oclChangeDetection);
 
-    if (grayscale)
-        clfw->oclCreateKernel("changeDetectionKernel", "bbbii", deviceOldImage, deviceNewImage, deviceOutputImage, 90, 1);
-    else
-        clfw->oclCreateKernel("changeDetectionKernel", "bbbii", deviceOldImage, deviceNewImage, deviceOutputImage, 90, 0);
+    // if (grayscale)
+    //     clfw->oclCreateKernel("changeDetectionKernel", "bbbii", deviceOldImage, deviceNewImage, deviceOutputImage, 90, 1);
+    // else
+    //     clfw->oclCreateKernel("changeDetectionKernel", "bbbii", deviceOldImage, deviceNewImage, deviceOutputImage, 90, 0);
 
-    size_t globalSize[2] = 
-    {
-        static_cast<size_t>(width),
-        static_cast<size_t>(height)
-    };
-    gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
+    // size_t globalSize[2] = 
+    // {
+    //     static_cast<size_t>(width),
+    //     static_cast<size_t>(height)
+    // };
+    // gpuTime += clfw->oclExecuteKernel(globalSize, 0, 2);
 
-    clfw->oclReadImage(&deviceOutputImage, width, height, outputImage.data);
+    // clfw->oclReadImage(&deviceOutputImage, width, height, outputImage.data);
 
     imageUtils->saveImage(outputImagePath, &outputImage);
 

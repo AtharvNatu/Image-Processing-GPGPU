@@ -16,6 +16,8 @@
 
 #include "ImageUtils.hpp"
 
+constexpr int HIST_BINS = 256;
+
 class OtsuBinarizerOpenCL
 {
     private:

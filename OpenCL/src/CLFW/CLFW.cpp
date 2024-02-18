@@ -10,14 +10,14 @@ void CLFW::initialize(void)
 {
     // Code
     this->oclGetPlatforms();
-    std::cout << std::endl << "Select Preferred Platform : ";
-    std::cin >> user_platform;
-    this->oclSetPlatform(user_platform);
+    // std::cout << std::endl << "Select Preferred Platform : ";
+    // std::cin >> user_platform;
+    this->oclSetPlatform(1);
 
     this->oclGetDevices();
-    std::cout << std::endl << "Select Preferred Device : ";
-    std::cin >> user_device;
-    this->oclSetDevice(user_device);
+    // std::cout << std::endl << "Select Preferred Device : ";
+    // std::cin >> user_device;
+    this->oclSetDevice(1);
 
     this->oclGetDeviceProperties();
 
@@ -267,7 +267,7 @@ void CLFW::oclGetDeviceProperties(void)
         if (oclMemSize > 1000000 && oclMemSize < 1000000000)
             std::cout << std::endl << "GPU Memory : " << (int)oclMemSize / (1024 * 1024) << " MB" << std::endl;
         else
-            std::cout << std::endl << "GPU Memory : " << (int)oclMemSize / 1e+9 << " GB" << std::endl;
+            std::cout << std::endl << "GPU Memory : " << (unsigned long long)oclMemSize / 1000000000 << " GB" << std::endl;
 
         oclExecStatus(clGetDeviceInfo(
             oclDeviceId,
@@ -594,6 +594,22 @@ void CLFW::oclWriteBuffer(cl_mem oclDataBuffer, size_t oclDataSize, void *hostPt
         0,
         NULL,
         NULL));
+}
+
+void CLFW::oclFillBuffer(cl_mem oclDataBuffer, const void *pattern, size_t patternSize, size_t offset, size_t size)
+{
+    // Code
+    oclExecStatus(clEnqueueFillBuffer(
+        oclCommandQueue,
+        oclDataBuffer,
+        &pattern,
+        patternSize,
+        offset,
+        size,
+        0,
+        NULL,
+        NULL
+    ));
 }
 
 void CLFW::oclReadBuffer(cl_mem oclDataBuffer, size_t oclDataSize, void *hostPtr)

@@ -61,14 +61,14 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCo
     size_t totalPixels = imageData.size();
     *pixelCount = totalPixels;
 
-    hostHistogram = new uint_t[MAX_PIXEL_VALUE];
-    memset(hostHistogram, 0, MAX_PIXEL_VALUE);
+    hostHistogram = new uint_t[HIST_BINS];
+    memset(hostHistogram, 0, HIST_BINS);
     
-    cudaUtils->memAlloc((void**)&deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE);
-    cudaUtils->memSet(deviceHistogram, 0, MAX_PIXEL_VALUE * sizeof(uint_t));
+    cudaUtils->memAlloc((void**)&deviceHistogram, sizeof(uint_t) * HIST_BINS);
+    cudaUtils->memSet(deviceHistogram, 0, HIST_BINS * sizeof(uint_t));
     cudaUtils->memAlloc((void**)&devicePixelData, sizeof(uchar_t) * totalPixels);
 
-    cudaUtils->memCopy(deviceHistogram, hostHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
+    cudaUtils->memCopy(deviceHistogram, hostHistogram, sizeof(uint_t) * HIST_BINS, cudaMemcpyHostToDevice);
     cudaUtils->memCopy(devicePixelData, imageData.data(), sizeof(uchar_t) * totalPixels, cudaMemcpyHostToDevice);
 
     dim3 BLOCKS(((totalPixels / 3) + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
@@ -86,13 +86,13 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCo
     cudaUtils->syncEvent(end);
     cudaUtils->getEventElapsedTime(gpuTime, start, end);
 
-    cudaUtils->memCopy(hostHistogram, deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
+    cudaUtils->memCopy(hostHistogram, deviceHistogram, sizeof(uint_t) * HIST_BINS, cudaMemcpyDeviceToHost);
 
     //* Normalize Host Histogram
-    normalizedHistogram = new double[MAX_PIXEL_VALUE];
+    normalizedHistogram = new double[HIST_BINS];
     sdkStartTimer(&gpuTimer);
     {
-        for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+        for (int i = 0; i < HIST_BINS; i++)
             normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
     }
     sdkStopTimer(&gpuTimer);
