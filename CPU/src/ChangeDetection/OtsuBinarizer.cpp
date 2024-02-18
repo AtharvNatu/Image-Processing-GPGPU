@@ -11,7 +11,7 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
-    std::vector<double> histogram(MAX_PIXEL_VALUE);
+    std::vector<double> histogram(MAX_PIXEL_VALUE, 0.0);
     std::vector<uchar_t> occurences(MAX_PIXEL_VALUE);
     std::vector<uchar_t> imageVector;
 

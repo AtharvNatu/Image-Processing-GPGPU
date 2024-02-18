@@ -18,7 +18,11 @@
 class OtsuBinarizerCuda
 {
     private:
+        //* Serial Timer
         StopWatchInterface *gpuTimer = nullptr;
+
+        //* Parallel Timer
+        cudaEvent_t start, end;
 
     public:
 
@@ -27,19 +31,21 @@ class OtsuBinarizerCuda
 
         /// @brief Generate Histogram From Input Image
         /// @param inputImage [IN] cv::Mat Pointer to input image
-        /// @param imageUtils Instance of ImageUtils Class
         /// @param pixelCount [OUT] Total Pixels in image
         /// @param gpuTime [OUT] Kernel Execution Time
+        /// @param imageUtils Instance of ImageUtils Class
+        /// @param cudaUtils Instance of CudaUtils Class
         /// @return Array containing histogram values in double precision
-        double* computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, size_t *pixelCount, double *gpuTime);
+        double* computeHistogram(cv::Mat* inputImage, size_t *pixelCount, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils);
 
 
         /// @brief Get Threshold From Input Image
         /// @param inputImage [IN] cv::Mat Pointer to input image
-        /// @param imageUtils Instance of ImageUtils Class
         /// @param gpuTime [OUT] Kernel Execution Time
+        /// @param imageUtils Instance of ImageUtils Class
+        /// @param cudaUtils Instance of CudaUtils Class
         /// @return Integer threshold value for the image
-        int computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, double *gpuTime);
+        int computeThreshold(cv::Mat* inputImage, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils);
 };
 
 //* CUDA Kernel Prototypes

@@ -28,8 +28,11 @@ class CudaChangeDetection
 {
     // Member Variables
     private:
-        StopWatchInterface *cudaTimer = nullptr;
+        //* Parallel Timer
+        cudaEvent_t start, end;
+
         ImageUtils *imageUtils = nullptr;
+        CudaUtils *cudaUtils = nullptr;
         OtsuBinarizerCuda *binarizer = nullptr;
 
         uchar3 *hostOldImage = nullptr, *hostNewImage = nullptr, *hostOutputImage = nullptr;

@@ -49,7 +49,7 @@ __global__ void cudaComputeClassVariances(double *histogram, double allProbabili
 }
 
 // Method Definitions
-double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, size_t *pixelCount, double *gpuTime)
+double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCount, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
 {
     // Variable Declarations
     uint_t *hostHistogram = nullptr, *deviceHistogram = nullptr;
@@ -64,25 +64,29 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *ima
     hostHistogram = new uint_t[MAX_PIXEL_VALUE];
     memset(hostHistogram, 0, MAX_PIXEL_VALUE);
     
-    cudaMemAlloc((void**)&deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE);
-    cudaMemAlloc((void**)&devicePixelData, sizeof(uchar_t) * totalPixels);
+    cudaUtils->memAlloc((void**)&deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE);
+    cudaUtils->memSet(deviceHistogram, 0, MAX_PIXEL_VALUE * sizeof(uint_t));
+    cudaUtils->memAlloc((void**)&devicePixelData, sizeof(uchar_t) * totalPixels);
 
-    cudaMemCopy(deviceHistogram, hostHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
-    cudaMemCopy(devicePixelData, imageData.data(), sizeof(uchar_t) * totalPixels, cudaMemcpyHostToDevice);
+    cudaUtils->memCopy(deviceHistogram, hostHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
+    cudaUtils->memCopy(devicePixelData, imageData.data(), sizeof(uchar_t) * totalPixels, cudaMemcpyHostToDevice);
 
     dim3 BLOCKS(((totalPixels / 3) + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
 
     long segmentSize = ceil(totalPixels / (THREADS_PER_BLOCK * BLOCKS.x)) + 1;
 
     //* CUDA Kernel Call
-    sdkStartTimer(&gpuTimer);
+    cudaUtils->createEvent(&start);
+    cudaUtils->createEvent(&end);
+    cudaUtils->recordEvent(start, 0);
     {
         cudaHistogram<<<BLOCKS, THREADS_PER_BLOCK>>>(devicePixelData, deviceHistogram, segmentSize, totalPixels);
     }
-    sdkStopTimer(&gpuTimer);
-    *gpuTime += sdkGetTimerValue(&gpuTimer);
-    
-    cudaMemCopy(hostHistogram, deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
+    cudaUtils->recordEvent(end, 0);
+    cudaUtils->syncEvent(end);
+    cudaUtils->getEventElapsedTime(gpuTime, start, end);
+
+    cudaUtils->memCopy(hostHistogram, deviceHistogram, sizeof(uint_t) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
 
     //* Normalize Host Histogram
     normalizedHistogram = new double[MAX_PIXEL_VALUE];
@@ -94,8 +98,8 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *ima
     sdkStopTimer(&gpuTimer);
     *gpuTime += sdkGetTimerValue(&gpuTimer);
 
-    cudaMemFree((void**)&devicePixelData);
-    cudaMemFree((void**)&deviceHistogram);
+    cudaUtils->memFree((void**)&devicePixelData);
+    cudaUtils->memFree((void**)&deviceHistogram);
 
     delete[] hostHistogram;
     hostHistogram = nullptr;
@@ -103,17 +107,16 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, ImageUtils *ima
     return normalizedHistogram;
 }
 
-int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, double *gpuTime)
+int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
 {
     // Variable Declarations
     double allProbabilitySum = 0, maxVariance = 0;
     double *hostBetweenClassVariances = nullptr, *deviceHistogram = nullptr, *deviceBetweenClassVariances = nullptr;
     int threshold = 0;
     size_t totalPixels = 0;
-    StopWatchInterface *gpuTimer = nullptr;
 
     // Code
-    double *hostHistogram = computeHistogram(inputImage, imageUtils, &totalPixels, gpuTime);
+    double *hostHistogram = computeHistogram(inputImage, &totalPixels, gpuTime, imageUtils, cudaUtils);
 
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         allProbabilitySum += i * hostHistogram[i];
@@ -121,26 +124,26 @@ int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUt
     hostBetweenClassVariances = new double[MAX_PIXEL_VALUE];
     memset(hostBetweenClassVariances, 0, MAX_PIXEL_VALUE);
 
-    cudaMemAlloc((void**)&deviceHistogram, sizeof(double) * MAX_PIXEL_VALUE);
-    cudaMemAlloc((void**)&deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE);
+    cudaUtils->memAlloc((void**)&deviceHistogram, sizeof(double) * MAX_PIXEL_VALUE);
+    cudaUtils->memAlloc((void**)&deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE);
 
-    cudaMemCopy(deviceHistogram, hostHistogram, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
-    cudaMemCopy(deviceBetweenClassVariances, hostBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
+    cudaUtils->memCopy(deviceHistogram, hostHistogram, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
+    cudaUtils->memCopy(deviceBetweenClassVariances, hostBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyHostToDevice);
     
     //* CUDA Kernel Configuration
     int NUM_BLOCKS = 1;
     int THREADS = THREADS_PER_BLOCK / 4;
 
     //* CUDA Kernel Call
-    sdkCreateTimer(&gpuTimer);
-    sdkStartTimer(&gpuTimer);
+    cudaUtils->recordEvent(start, 0);
     {
         cudaComputeClassVariances<<<NUM_BLOCKS, THREADS>>>(deviceHistogram, allProbabilitySum, deviceBetweenClassVariances, totalPixels);
     }
-    sdkStopTimer(&gpuTimer);
-    *gpuTime += sdkGetTimerValue(&gpuTimer);
+    cudaUtils->recordEvent(end, 0);
+    cudaUtils->syncEvent(end);
+    cudaUtils->getEventElapsedTime(gpuTime, start, end);
 
-    cudaMemCopy(hostBetweenClassVariances, deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
+    cudaUtils->memCopy(hostBetweenClassVariances, deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
     
     sdkStartTimer(&gpuTimer);
     {
@@ -156,13 +159,15 @@ int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUt
     sdkStopTimer(&gpuTimer);
     *gpuTime += sdkGetTimerValue(&gpuTimer);
 
-    cudaMemFree((void**)&deviceBetweenClassVariances);
-    cudaMemFree((void**)&deviceHistogram);
+    cudaUtils->destroyEvent(end);
+    cudaUtils->destroyEvent(start);
+
+    cudaUtils->memFree((void**)&deviceBetweenClassVariances);
+    cudaUtils->memFree((void**)&deviceHistogram);
 
     delete[] hostBetweenClassVariances;
     hostBetweenClassVariances = nullptr;
 
-    //! REMOVE THIS IF HISTOGRAM IS NEEDED
     delete[] hostHistogram;
     hostHistogram = nullptr;
 

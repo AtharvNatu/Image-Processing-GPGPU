@@ -28,8 +28,8 @@ then
 
     echo "Running Executable ... "
     ./App \
-    /home/atharv/Desktop/Internship/Images/40000_old.png \
-    /home/atharv/Desktop/Internship/Images/40000_new.png \
+    /home/atharv/Desktop/Internship/Images/10000_old.png \
+    /home/atharv/Desktop/Internship/Images/10000_new.png \
     /home/atharv/Desktop/Internship/Images/ \
 
 else
