@@ -68,6 +68,8 @@
             void oclSetDevice(int oclDevice);
 
             void oclGetDeviceProperties(void);
+            size_t oclGetDeviceMaxWorkGroupSize(void);
+
             void oclCreateImage(cl_mem *devPtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels);
             void oclReadImage(cl_mem *devImagePtr, int imageWidth, int imageHeight, unsigned char *imagePixels);
 

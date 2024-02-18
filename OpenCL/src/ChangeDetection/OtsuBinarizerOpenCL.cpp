@@ -65,8 +65,6 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     double *normalizedHistogram = nullptr;
     cl_mem deviceHistogram = NULL;
     cl_mem devicePixelData = NULL;
-    size_t globalWorkSize = 1024;
-    size_t localWorkSize = 64;
     int zero = 0;
 
     // Code
@@ -88,8 +86,10 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     
     clfw->oclCreateProgram(oclHistogram);
 
-	clfw->oclCreateKernel("oclHistogramKernel", "bbi", devicePixelData, deviceHistogram, totalPixels / 4);
+	clfw->oclCreateKernel("oclHistogramKernel", "bbi", devicePixelData, deviceHistogram, totalPixels);
     
+    size_t localWorkSize = clfw->oclGetDeviceMaxWorkGroupSize();
+    size_t globalWorkSize = (histogramSize % localWorkSize == 0) ? histogramSize : ((histogramSize / localWorkSize + 1) * localWorkSize);
     *gpuTime += clfw->oclExecuteKernel(globalWorkSize, localWorkSize, 1);
 
     clfw->oclReadBuffer(deviceHistogram, sizeof(uint_t) * HIST_BINS, hostHistogram);
@@ -177,6 +177,7 @@ int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
     sdkStopTimer(&gpuTimer);
     *gpuTime += sdkGetTimerValue(&gpuTimer);
 
+    std::cout << std::endl << "7" << std::endl;
     clfw->oclReleaseBuffer(deviceBetweenClassVariances);
     clfw->oclReleaseBuffer(deviceHistogram);
 

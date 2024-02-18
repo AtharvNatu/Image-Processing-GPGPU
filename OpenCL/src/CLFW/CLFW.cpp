@@ -281,6 +281,22 @@ void CLFW::oclGetDeviceProperties(void)
     }
 }
 
+size_t CLFW::oclGetDeviceMaxWorkGroupSize(void)
+{
+    // Code
+    size_t localSize;
+    
+    oclExecStatus(clGetDeviceInfo(
+        oclDeviceId,
+        CL_DEVICE_MAX_WORK_GROUP_SIZE,
+        sizeof(localSize),
+        &localSize,
+        NULL
+    ));
+
+    return localSize;
+}
+
 void CLFW::oclCreateImage(cl_mem *devImagePtr, cl_mem_flags flags, size_t imageWidth, size_t imageHeight, unsigned char *imagePixels)
 {
     // Code
