@@ -1,8 +1,8 @@
 OPENCV_INCLUDE_PATH=/usr/include/opencv4
 
 #? USING AMD ROCm OpenCL SDK
-OPENCL_INCLUDE_PATH=/opt/rocm/include/
-OPENCL_LIB_PATH=/opt/rocm/lib/
+OPENCL_INCLUDE_PATH=/opt/cuda/include/
+OPENCL_LIB_PATH=/opt/cuda/lib/
 
 SHARED_LIB=false
 
@@ -35,8 +35,8 @@ then
 
     echo "Running Executable ... "
     ./App \
-    /home/atharv/Desktop/Internship/Images/10000_old.png \
-    /home/atharv/Desktop/Internship/Images/10000_new.png \
+    /home/atharv/Desktop/Internship/Images/Dubai_1.jpg \
+    /home/atharv/Desktop/Internship/Images/Dubai_2.jpg \
     /home/atharv/Desktop/Internship/Images \
 
     # valgrind --tool=massif --pages-as-heap=yes ./App /home/atharv/Desktop/Internship/Images/10000_old.png /home/atharv/Desktop/Internship/Images/10000_new.png /home/atharv/Desktop/Internship/Images

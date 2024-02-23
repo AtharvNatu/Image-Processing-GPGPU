@@ -144,8 +144,8 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
 
     //* 2. Ostu Thresholding
     int threshold1 = binarizer->computeThreshold(&oldAlphaImage, imageUtils, clfw, &gpuTime);
-    int threshold2 = binarizer->computeThreshold(&newAlphaImage, imageUtils, clfw, &gpuTime);
-    int meanThreshold = (threshold1 + threshold2) / 2;
+    // int threshold2 = binarizer->computeThreshold(&newAlphaImage, imageUtils, clfw, &gpuTime);
+    // int meanThreshold = (threshold1 + threshold2) / 2;
 
     //* 3. Differencing
     // clfw->oclCreateImage(&deviceOldImage, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width, height, oldAlphaImage.data);

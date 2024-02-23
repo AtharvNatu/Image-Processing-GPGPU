@@ -66,6 +66,7 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCo
     
     cudaUtils->memAlloc((void**)&deviceHistogram, sizeof(uint_t) * HIST_BINS);
     cudaUtils->memSet(deviceHistogram, 0, HIST_BINS * sizeof(uint_t));
+    
     cudaUtils->memAlloc((void**)&devicePixelData, sizeof(uchar_t) * totalPixels);
 
     cudaUtils->memCopy(deviceHistogram, hostHistogram, sizeof(uint_t) * HIST_BINS, cudaMemcpyHostToDevice);

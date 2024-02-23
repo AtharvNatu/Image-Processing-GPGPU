@@ -10,14 +10,14 @@ void CLFW::initialize(void)
 {
     // Code
     this->oclGetPlatforms();
-    // std::cout << std::endl << "Select Preferred Platform : ";
-    // std::cin >> user_platform;
-    this->oclSetPlatform(1);
+    std::cout << std::endl << "Select Preferred Platform : ";
+    std::cin >> user_platform;
+    this->oclSetPlatform(user_platform);
 
     this->oclGetDevices();
-    // std::cout << std::endl << "Select Preferred Device : ";
-    // std::cin >> user_device;
-    this->oclSetDevice(1);
+    std::cout << std::endl << "Select Preferred Device : ";
+    std::cin >> user_device;
+    this->oclSetDevice(user_device);
 
     this->oclGetDeviceProperties();
 
@@ -540,7 +540,7 @@ double CLFW::oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize,
     return gpuTime;
 }
 
-double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize, int workDimensions)
+double CLFW::oclExecuteKernel(size_t *oclGlobalWorkSize, size_t *oclLocalWorkSize, int workDimensions)
 {
     // Code
     oclExecStatus(clEnqueueNDRangeKernel(

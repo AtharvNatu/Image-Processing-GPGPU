@@ -1,3 +1,5 @@
+#define CUDA_ENABLE_KERNEL_TRACE 1
+
 #include "../include/ChangeDetection/OpenCLChangeDetection.hpp"
 
 int main(int argc, char **argv)

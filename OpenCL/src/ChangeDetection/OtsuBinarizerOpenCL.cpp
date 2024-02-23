@@ -1,7 +1,7 @@
 #include "../../include/ChangeDetection/OtsuBinarizerOpenCL.hpp"
 
 const char *oclHistogram = 
-    "__kernel void oclHistogramKernel(__global uchar *pixelData, __global int *histogram, int numPixels)" \
+    "__kernel void oclHistogramKernel(__global int *pixelData, __global int *histogram, int numPixels)" \
 	"{" \
 		"__local int localHistogram[256];" \
 
@@ -25,6 +25,7 @@ const char *oclHistogram =
         "for (int i = localId; i < 256; i += get_local_size(0))" \
         "{" \
             "atomic_add(&histogram[i], localHistogram[i]);" \
+            "printf(\"%d\", histogram[i]);"
         "}" \
 	"}";
 
@@ -62,55 +63,100 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
 {
     // Variable Declarations
     int *hostHistogram = nullptr;
+
     double *normalizedHistogram = nullptr;
+
     cl_mem deviceHistogram = NULL;
     cl_mem devicePixelData = NULL;
+
     int zero = 0;
 
     // Code
     std::vector<uchar_t> imageData = imageUtils->getRawPixelData(inputImage);
-    size_t totalPixels = imageData.size();
-    *pixelCount = totalPixels;
+    // size_t totalPixels = imageData.size();
+    // *pixelCount = totalPixels;
+
+    // std::cout << std::endl << "Total Pixels = " << totalPixels << std::endl;
+    // std::cout << std::endl << "Rows * Cols = " << inputImage->rows * inputImage->cols << std::endl;
+    // std::cout << std::endl << "Rows * Cols * sizeof(int) = " << inputImage->rows * inputImage->cols * sizeof(int) << std::endl;
 
     const int histogramSize = HIST_BINS * sizeof(int);
+    const int imageElements = inputImage->rows * inputImage->cols;
+    const size_t imageSize = imageElements * sizeof(int);
 
+    // hostHistogram = (int*)malloc(histogramSize * sizeof(int));
+    // if (hostHistogram == NULL)
+    //     std::cerr << std::endl << "Failed to allocate memory " << std::endl;
     hostHistogram = new int[HIST_BINS];
-    memset(hostHistogram, 0, HIST_BINS);
     
-    devicePixelData = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, sizeof(uchar_t) * totalPixels);
-    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_WRITE, histogramSize);
+    
+    devicePixelData = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, imageSize);
+    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_WRITE_ONLY, histogramSize);
 
-    clfw->oclWriteBuffer(devicePixelData, sizeof(uchar_t) * totalPixels, imageData.data());
+    clfw->oclWriteBuffer(devicePixelData, imageSize, imageData.data());
     
     clfw->oclFillBuffer(deviceHistogram, &zero, sizeof(int), 0, histogramSize);
     
     clfw->oclCreateProgram(oclHistogram);
 
-	clfw->oclCreateKernel("oclHistogramKernel", "bbi", devicePixelData, deviceHistogram, totalPixels);
+	clfw->oclCreateKernel("oclHistogramKernel", "bbi", devicePixelData, deviceHistogram, imageElements);
     
     size_t localWorkSize = clfw->oclGetDeviceMaxWorkGroupSize();
     size_t globalWorkSize = (histogramSize % localWorkSize == 0) ? histogramSize : ((histogramSize / localWorkSize + 1) * localWorkSize);
-    *gpuTime += clfw->oclExecuteKernel(globalWorkSize, localWorkSize, 1);
 
-    clfw->oclReadBuffer(deviceHistogram, sizeof(uint_t) * HIST_BINS, hostHistogram);
+    // size_t globalWorkSize[1];
+    // globalWorkSize[0] = 1024;
 
-    std::cout << std::endl << "Before Normalization" << std::endl;
-    for (int i = 0; i < HIST_BINS; i++)
-        std::cout << std::endl << hostHistogram[i];
+    // size_t localWorkSize[1];
+    // localWorkSize[0] = 64;
+
+    std::cout << std::endl << "1" << std::endl;
+
+    // *gpuTime += clfw->oclExecuteKernel(&globalWorkSize, &localWorkSize, 1);
+    clfw->oclExecStatus(clEnqueueNDRangeKernel(
+        clfw->oclCommandQueue,
+        clfw->oclKernel,
+        1,
+        NULL,
+        &globalWorkSize,
+        &localWorkSize,
+        0,
+        NULL,
+        NULL
+    ));
+
+    std::cout << std::endl << "2" << std::endl;
+
+    // clfw->oclReadBuffer(deviceHistogram, histogramSize, hostHistogram);
+    clfw->oclExecStatus(clEnqueueReadBuffer(clfw->oclCommandQueue, deviceHistogram, CL_TRUE, 0, histogramSize, hostHistogram, 0, NULL, NULL));
+
+    std::cout << std::endl << "3" << std::endl;
+
+    // std::cout << std::endl << "Before Normalization" << std::endl;
+    // for (int i = 0; i < HIST_BINS; i++)
+    //     std::cout << std::endl << hostHistogram[i];
+    FILE* histFile = fopen("ocl-hist.txt", "wb");
+    if (histFile == NULL)
+        std::cerr << std::endl << "Failed to open file" << std::endl;
+    fprintf(histFile, "Before Normalization\n\n");
+    for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+        fprintf(histFile, "\tPixel value %d -> %.5d\n", i, hostHistogram[i]);
+    fprintf(histFile, "\n\n\n");
+    fclose(histFile);
     
-    //* Normalize Host Histogram
-    normalizedHistogram = new double[HIST_BINS];
-    sdkStartTimer(&gpuTimer);
-    {
-        for (int i = 0; i < HIST_BINS; i++)
-            normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
-    }
-    sdkStopTimer(&gpuTimer);
-    *gpuTime += sdkGetTimerValue(&gpuTimer);
+    // //* Normalize Host Histogram
+    // normalizedHistogram = new double[HIST_BINS];
+    // sdkStartTimer(&gpuTimer);
+    // {
+    //     for (int i = 0; i < HIST_BINS; i++)
+    //         normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
+    // }
+    // sdkStopTimer(&gpuTimer);
+    // *gpuTime += sdkGetTimerValue(&gpuTimer);
 
-    std::cout << std::endl << "After Normalization" << std::endl;
-    for (int i = 0; i < HIST_BINS; i++)
-        std::cout << std::endl << normalizedHistogram[i];
+    // std::cout << std::endl << "After Normalization" << std::endl;
+    // for (int i = 0; i < HIST_BINS; i++)
+    //     std::cout << std::endl << normalizedHistogram[i];
 
     clfw->oclReleaseBuffer(devicePixelData);
     clfw->oclReleaseBuffer(deviceHistogram);
@@ -134,9 +180,6 @@ int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
 
     // Code
     double *hostHistogram = computeHistogram(inputImage, imageUtils, clfw, &totalPixels, gpuTime);
-
-    for (int i = 0; i < HIST_BINS; i++)
-        std::cout << std::endl << hostHistogram[i];
 
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         allProbabilitySum += i * hostHistogram[i];

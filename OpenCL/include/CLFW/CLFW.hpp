@@ -79,7 +79,7 @@
             void oclCreateKernel(const char* oclKernelName, const char *oclKernelArgTypes,...);
             size_t getGlobalWorkSize(int localSize, unsigned int globalSize);
             double oclExecuteKernel(size_t oclGlobalWorkSize, size_t oclLocalWorkSize, int workDimensions);
-            double oclExecuteKernel(size_t *oclGlobalWorkSize, size_t oclLocalWorkSize, int workDimensions);
+            double oclExecuteKernel(size_t *oclGlobalWorkSize, size_t *oclLocalWorkSize, int workDimensions);
 
             void hostMemAlloc(void** hostPtr, std::string hostType, size_t hostSize);
 
