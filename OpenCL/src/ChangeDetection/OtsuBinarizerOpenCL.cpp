@@ -57,8 +57,33 @@ OtsuBinarizerOpenCL::OtsuBinarizerOpenCL(void)
     sdkCreateTimer(&gpuTimer);
 }
 
+int* histogramGold(uchar *data, int items, int bins)
+{
+   int *refHistogram;
+
+   /* Allocate space for the histogram */
+	refHistogram = (int*)malloc(bins*sizeof(int));
+   if (!refHistogram) { exit(-1); }
+
+   /* Initialize the histogram to zero */
+   int i;
+   for (i = 0; i < bins; i++) {
+      refHistogram[i] = 0;
+   }
+
+   /* Compute the histogram */
+   for (i = 0; i < items; i++) {
+      if (data[i] >= bins) {
+         printf("Warning: Histogram data value out-of-bounds\n");
+      }
+      refHistogram[data[i]]++;
+   }
+
+   return refHistogram;
+}
+
 // Method Definitions
-double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime)
+void OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime)
 {
     // Variable Declarations
     int *hostHistogram = nullptr;
@@ -75,16 +100,15 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     // size_t totalPixels = imageData.size();
     // *pixelCount = totalPixels;
 
-    // std::cout << std::endl << "Total Pixels = " << totalPixels << std::endl;
-    // std::cout << std::endl << "Rows * Cols = " << inputImage->rows * inputImage->cols << std::endl;
-    // std::cout << std::endl << "Rows * Cols * sizeof(int) = " << inputImage->rows * inputImage->cols * sizeof(int) << std::endl;
-
     const int histogramSize = HIST_BINS * sizeof(int);
     const int imageElements = inputImage->rows * inputImage->cols;
     const size_t imageSize = imageElements * sizeof(int);
 
-    hostHistogram = new int[HIST_BINS];
-    std::memset(hostHistogram, 0, histogramSize);
+    std::cout << std::endl << "Image Elements = " << imageElements << std::endl;
+    std::cout << std::endl << "Image Size = " << imageSize << std::endl;
+    std::cout << std::endl << "Histogram Size = " << histogramSize << std::endl;
+    
+    clfw->hostMemAlloc((void**)&hostHistogram, "int", histogramSize);
     
     devicePixelData = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, imageSize);
     deviceHistogram = clfw->oclCreateBuffer(CL_MEM_WRITE_ONLY, histogramSize);
@@ -97,14 +121,14 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
 
 	clfw->oclCreateKernel("oclHistogramKernel", "bbi", devicePixelData, deviceHistogram, imageElements);
     
-    size_t localWorkSize = clfw->oclGetDeviceMaxWorkGroupSize();
-    size_t globalWorkSize = (histogramSize % localWorkSize == 0) ? histogramSize : ((histogramSize / localWorkSize + 1) * localWorkSize);
+    // size_t localWorkSize = clfw->oclGetDeviceMaxWorkGroupSize();
+    // size_t globalWorkSize = (histogramSize % localWorkSize == 0) ? histogramSize : ((histogramSize / localWorkSize + 1) * localWorkSize);
 
-    // size_t globalWorkSize[1];
-    // globalWorkSize[0] = 1024;
+    size_t globalWorkSize[1];
+    globalWorkSize[0] = 1024;
 
-    // size_t localWorkSize[1];
-    // localWorkSize[0] = 64;
+    size_t localWorkSize[1];
+    localWorkSize[0] = 64;
 
     std::cout << std::endl << "1" << std::endl;
 
@@ -114,8 +138,8 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
         clfw->oclKernel,
         1,
         NULL,
-        &globalWorkSize,
-        &localWorkSize,
+        globalWorkSize,
+        localWorkSize,
         0,
         NULL,
         NULL
@@ -128,21 +152,42 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
 
     std::cout << std::endl << "3" << std::endl;
 
-    FILE* histFile = fopen("ocl-hist.txt", "wb");
+    int *refHistogram;
+    refHistogram = histogramGold(imageData.data(), imageElements, HIST_BINS);
+    bool bAccurate = true;
+    int breakVal = -1;
+    int i;
+    for (i = 0; i < HIST_BINS; i++) {
+        if (hostHistogram[i] != refHistogram[i]) {
+            bAccurate = false;
+            breakVal = i;
+            break;
+        }
+    }
+
+    if (bAccurate)
+		std::cout << std::endl << "Histogram Calculation Successful ..." << std::endl;
+	else
+		std::cerr << std::endl << "Histogram Calculation Failed At Index : " << breakVal << " !!!" << std::endl;
+    
+    
+
+    FILE* histFile = fopen("ocl-hist-cpu.txt", "wb");
     if (histFile == NULL)
         std::cerr << std::endl << "Failed to open file" << std::endl;
-    fprintf(histFile, "Before Normalization\n\n");
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-        fprintf(histFile, "\tPixel value %d -> %.5d\n", i, hostHistogram[i]);
+        fprintf(histFile, "\tPixel value %d -> %.5d\n", i, refHistogram[i]);
     fprintf(histFile, "\n\n\n");
     fclose(histFile);
+
+    free(refHistogram);
     
     // //* Normalize Host Histogram
     // normalizedHistogram = new double[HIST_BINS];
     // sdkStartTimer(&gpuTimer);
     // {
     //     for (int i = 0; i < HIST_BINS; i++)
-    //         normalizedHistogram[i] = (double)hostHistogram[i] / (double)totalPixels;
+    //         normalizedHistogram[i] = (double)hostHistogram[i] / (double)imageSize;
     // }
     // sdkStopTimer(&gpuTimer);
     // *gpuTime += sdkGetTimerValue(&gpuTimer);
@@ -154,13 +199,7 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     clfw->oclReleaseBuffer(devicePixelData);
     clfw->oclReleaseBuffer(deviceHistogram);
 
-    delete[] hostHistogram;
-    hostHistogram = nullptr;
-
-    // free(hostHistogram);
-    // hostHistogram = NULL;
-
-    return normalizedHistogram;
+    clfw->hostMemFree(&hostHistogram);
 }
 
 int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, double *gpuTime)
@@ -175,7 +214,8 @@ int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
     size_t localWorkSize = 1;
 
     // Code
-    double *hostHistogram = computeHistogram(inputImage, imageUtils, clfw, &totalPixels, gpuTime);
+    // double *hostHistogram = computeHistogram(inputImage, imageUtils, clfw, &totalPixels, gpuTime);
+    computeHistogram(inputImage, imageUtils, clfw, &totalPixels, gpuTime);
 
     // for (int i = 0; i < MAX_PIXEL_VALUE; i++)
     //     allProbabilitySum += i * hostHistogram[i];

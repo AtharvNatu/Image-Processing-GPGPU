@@ -9,7 +9,7 @@ if %dll% == false (
     @REM For Executable
     cd bin/
     
-    cl.exe /openmp /std:c++20 /c /EHsc ^
+    cl.exe /std:c++20 /c /EHsc ^
         -I "C:\opencv\build\include" ^
         -I "C:\KhronosOpenCL\include" ^
         "../test/Main.cpp" ^
@@ -24,8 +24,8 @@ if %dll% == false (
     cd ../
 
     App.exe ^
-    "F:\Internship\Images\10000_old.png" ^
-    "F:\Internship\Images\10000_new.png" ^
+    "F:\Internship\Images\Dubai_1.jpg" ^
+    "F:\Internship\Images\Dubai_2.jpg" ^
     "F:\Internship\Images" ^
   
 ) else (
@@ -33,7 +33,7 @@ if %dll% == false (
     @REM For DLL
     cd bin/
     
-    cl.exe /openmp /std:c++20 /c /EHsc ^
+    cl.exe /std:c++20 /c /EHsc ^
         -I "C:\opencv\build\include" ^
         "../export/Lib.cpp" ^
         "../src/Common/*.cpp" ^
