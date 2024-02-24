@@ -25,7 +25,6 @@ const char *oclHistogram =
         "for (int i = localId; i < 256; i += get_local_size(0))" \
         "{" \
             "atomic_add(&histogram[i], localHistogram[i]);" \
-            "printf(\"%d\", histogram[i]);"
         "}" \
 	"}";
 
@@ -84,11 +83,8 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     const int imageElements = inputImage->rows * inputImage->cols;
     const size_t imageSize = imageElements * sizeof(int);
 
-    // hostHistogram = (int*)malloc(histogramSize * sizeof(int));
-    // if (hostHistogram == NULL)
-    //     std::cerr << std::endl << "Failed to allocate memory " << std::endl;
     hostHistogram = new int[HIST_BINS];
-    
+    std::memset(hostHistogram, 0, histogramSize);
     
     devicePixelData = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, imageSize);
     deviceHistogram = clfw->oclCreateBuffer(CL_MEM_WRITE_ONLY, histogramSize);
@@ -132,9 +128,6 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
 
     std::cout << std::endl << "3" << std::endl;
 
-    // std::cout << std::endl << "Before Normalization" << std::endl;
-    // for (int i = 0; i < HIST_BINS; i++)
-    //     std::cout << std::endl << hostHistogram[i];
     FILE* histFile = fopen("ocl-hist.txt", "wb");
     if (histFile == NULL)
         std::cerr << std::endl << "Failed to open file" << std::endl;
@@ -164,6 +157,9 @@ double* OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     delete[] hostHistogram;
     hostHistogram = nullptr;
 
+    // free(hostHistogram);
+    // hostHistogram = NULL;
+
     return normalizedHistogram;
 }
 
@@ -181,59 +177,59 @@ int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
     // Code
     double *hostHistogram = computeHistogram(inputImage, imageUtils, clfw, &totalPixels, gpuTime);
 
-    for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-        allProbabilitySum += i * hostHistogram[i];
+    // for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+    //     allProbabilitySum += i * hostHistogram[i];
 
-    hostBetweenClassVariances = new double[MAX_PIXEL_VALUE];
-    memset(hostBetweenClassVariances, 0, MAX_PIXEL_VALUE);
+    // hostBetweenClassVariances = new double[MAX_PIXEL_VALUE];
+    // memset(hostBetweenClassVariances, 0, MAX_PIXEL_VALUE);
 
-    std::cout << std::endl << "1" << std::endl;
-    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, sizeof(double) * MAX_PIXEL_VALUE);
-    deviceBetweenClassVariances = clfw->oclCreateBuffer(CL_MEM_READ_WRITE, sizeof(double) * MAX_PIXEL_VALUE);
+    // std::cout << std::endl << "1" << std::endl;
+    // deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, sizeof(double) * MAX_PIXEL_VALUE);
+    // deviceBetweenClassVariances = clfw->oclCreateBuffer(CL_MEM_READ_WRITE, sizeof(double) * MAX_PIXEL_VALUE);
 
-     std::cout << std::endl << "2" << std::endl;
-    clfw->oclWriteBuffer(deviceHistogram, sizeof(double) * MAX_PIXEL_VALUE, hostHistogram);
-    clfw->oclWriteBuffer(deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, hostBetweenClassVariances);
+    //  std::cout << std::endl << "2" << std::endl;
+    // clfw->oclWriteBuffer(deviceHistogram, sizeof(double) * MAX_PIXEL_VALUE, hostHistogram);
+    // clfw->oclWriteBuffer(deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, hostBetweenClassVariances);
 
-     std::cout << std::endl << "3" << std::endl;
-    clfw->oclCreateProgram(oclClassVariances);
+    //  std::cout << std::endl << "3" << std::endl;
+    // clfw->oclCreateProgram(oclClassVariances);
 
-     std::cout << std::endl << "4" << std::endl;
-	clfw->oclCreateKernel("oclComputeClassVariances", "bdbi", deviceHistogram, allProbabilitySum, deviceBetweenClassVariances, (int)totalPixels);
+    //  std::cout << std::endl << "4" << std::endl;
+	// clfw->oclCreateKernel("oclComputeClassVariances", "bdbi", deviceHistogram, allProbabilitySum, deviceBetweenClassVariances, (int)totalPixels);
 
-    *gpuTime += clfw->oclExecuteKernel(globalWorkSize, localWorkSize, 1);
-     std::cout << std::endl << "5" << std::endl;
-    clfw->oclReadBuffer(deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, hostBetweenClassVariances);
+    // *gpuTime += clfw->oclExecuteKernel(globalWorkSize, localWorkSize, 1);
+    //  std::cout << std::endl << "5" << std::endl;
+    // clfw->oclReadBuffer(deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, hostBetweenClassVariances);
 
-     std::cout << std::endl << "6" << std::endl;
-    sdkStartTimer(&gpuTimer);
-    {
-        for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-        {
-            if (hostBetweenClassVariances[i] > maxVariance)
-            {
-                threshold = i;
-                maxVariance = hostBetweenClassVariances[i];
-            }
-        }
-    }
-    sdkStopTimer(&gpuTimer);
-    *gpuTime += sdkGetTimerValue(&gpuTimer);
+    //  std::cout << std::endl << "6" << std::endl;
+    // sdkStartTimer(&gpuTimer);
+    // {
+    //     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+    //     {
+    //         if (hostBetweenClassVariances[i] > maxVariance)
+    //         {
+    //             threshold = i;
+    //             maxVariance = hostBetweenClassVariances[i];
+    //         }
+    //     }
+    // }
+    // sdkStopTimer(&gpuTimer);
+    // *gpuTime += sdkGetTimerValue(&gpuTimer);
 
-    std::cout << std::endl << "7" << std::endl;
-    clfw->oclReleaseBuffer(deviceBetweenClassVariances);
-    clfw->oclReleaseBuffer(deviceHistogram);
+    // std::cout << std::endl << "7" << std::endl;
+    // clfw->oclReleaseBuffer(deviceBetweenClassVariances);
+    // clfw->oclReleaseBuffer(deviceHistogram);
 
-    delete[] hostBetweenClassVariances;
-    hostBetweenClassVariances = nullptr;
+    // delete[] hostBetweenClassVariances;
+    // hostBetweenClassVariances = nullptr;
 
-    //! REMOVE THIS IF HISTOGRAM IS NEEDED
-    delete[] hostHistogram;
-    hostHistogram = nullptr;
+    // //! REMOVE THIS IF HISTOGRAM IS NEEDED
+    // delete[] hostHistogram;
+    // hostHistogram = nullptr;
 
-    std::cout << std::endl << "Threshold = " << threshold << std::endl;
+    // std::cout << std::endl << "Threshold = " << threshold << std::endl;
 
-    return threshold;
+    return 0;
 }
 
 OtsuBinarizerOpenCL::~OtsuBinarizerOpenCL()
