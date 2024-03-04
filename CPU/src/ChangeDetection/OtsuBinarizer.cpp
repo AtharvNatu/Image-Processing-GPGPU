@@ -11,7 +11,7 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
-    std::vector<double> histogram(MAX_PIXEL_VALUE, 0.0);
+    std::vector<double> histogram(MAX_PIXEL_VALUE);
     std::vector<uchar_t> occurences(MAX_PIXEL_VALUE);
     std::vector<uchar_t> imageVector;
 
@@ -31,7 +31,7 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
                 #pragma omp for schedule(static, segmentSize)
                 for (size_t i = 0; i < totalPixels; i++)
                 {
-                    pixelValue = (int)imageVector[i];
+                    pixelValue = imageVector[i];
                     #pragma omp atomic
                     histogram[pixelValue]++;
                 }

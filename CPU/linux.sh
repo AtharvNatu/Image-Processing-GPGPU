@@ -26,10 +26,10 @@ then
 
     echo "Running Executable ... "
     ./App \
-    /home/atharv/Desktop/Internship/Images/10000_old.png \
-    /home/atharv/Desktop/Internship/Images/10000_new.png \
-    /home/atharv/Desktop/Internship/Images \
-    MT
+    /home/atharv/Desktop/Internship/Images/16000_old.png \
+    /home/atharv/Desktop/Internship/Images/16000_new.png \
+    /home/atharv/Desktop/Internship/Images/Results \
+    ST
 
 else
     clear
