@@ -26,7 +26,8 @@ then
     -lopencv_core \
     -lopencv_imgproc \
     -lopencv_imgcodecs \
-    -lm -lOpenCL
+    -lm -lOpenCL \
+    -lomp -fopenmp
 
     cp App ../
     echo "Done ... "
@@ -40,7 +41,6 @@ then
     /home/atharv/Desktop/Internship/Images \
 
     # valgrind --tool=massif --pages-as-heap=yes ./App /home/atharv/Desktop/Internship/Images/10000_old.png /home/atharv/Desktop/Internship/Images/10000_new.png /home/atharv/Desktop/Internship/Images
-
    
 else
     clear

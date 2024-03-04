@@ -26,8 +26,8 @@ then
 
     echo "Running Executable ... "
     ./App \
-    /home/atharv/Desktop/Internship/Images/16000_old.png \
-    /home/atharv/Desktop/Internship/Images/16000_new.png \
+    /home/atharv/Desktop/Internship/Images/Dubai_1.jpg \
+    /home/atharv/Desktop/Internship/Images/Dubai_2.jpg \
     /home/atharv/Desktop/Internship/Images/Results \
     ST
 
