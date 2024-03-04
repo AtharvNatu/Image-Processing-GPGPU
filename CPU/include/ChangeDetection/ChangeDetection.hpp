@@ -21,7 +21,7 @@
 #endif
 
 #include "ImageUtils.hpp"
-#include "OtsuBinarizer.hpp"
+#include "OtsuThreshold.hpp"
 
 
 class CPUChangeDetection
@@ -30,7 +30,7 @@ class CPUChangeDetection
     private:
         StopWatchInterface *cpuTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
-        OtsuBinarizerCPU *binarizer = nullptr;
+        OtsuThresholdCPU *binarizer = nullptr;
 
         /// @brief CPU Change Detection Kernel
         /// @param oldImage Image with old timestamp

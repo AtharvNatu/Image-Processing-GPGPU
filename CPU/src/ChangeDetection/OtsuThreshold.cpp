@@ -1,13 +1,13 @@
-#include "../../include/ChangeDetection/OtsuBinarizer.hpp"
+#include "../../include/ChangeDetection/OtsuThreshold.hpp"
 
-OtsuBinarizerCPU::OtsuBinarizerCPU(void)
+OtsuThresholdCPU::OtsuThresholdCPU(void)
 {
     // Code
     sdkCreateTimer(&cpuTimer);
 }
 
 // Method Definitions
-std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, size_t* pixelCount, double *cpuTime)
+std::vector<double> OtsuThresholdCPU::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, size_t* pixelCount, double *cpuTime)
 {
     // Variable Declarations
     uchar_t pixelValue = 0;
@@ -64,7 +64,7 @@ std::vector<double> OtsuBinarizerCPU::computeHistogram(cv::Mat* inputImage, Imag
     return histogram;
 }
 
-int OtsuBinarizerCPU::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, double *cpuTime)
+int OtsuThresholdCPU::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, bool multiThreading, int threadCount, double *cpuTime)
 {
     // Variable Declarations
     int threshold = 0;
@@ -173,7 +173,7 @@ int OtsuBinarizerCPU::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUti
     return threshold;
 }
 
-OtsuBinarizerCPU::~OtsuBinarizerCPU()
+OtsuThresholdCPU::~OtsuThresholdCPU()
 {
     // Code
     if (cpuTimer)

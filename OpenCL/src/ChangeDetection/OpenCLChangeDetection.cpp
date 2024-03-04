@@ -57,7 +57,7 @@ OpenCLChangeDetection::OpenCLChangeDetection(void)
 {
     // Code
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizerOpenCL();
+    binarizer = new OtsuThresholdOpenCL();
     clfw = new CLFW();
 
     sdkCreateTimer(&oclTimer);
@@ -69,7 +69,7 @@ OpenCLChangeDetection::OpenCLChangeDetection(std::string logFilePath)
     // Code
     logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizerOpenCL();
+    binarizer = new OtsuThresholdOpenCL();
     clfw = new CLFW();
 
     sdkCreateTimer(&oclTimer);

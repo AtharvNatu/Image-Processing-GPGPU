@@ -21,7 +21,7 @@
 #endif
 
 #include "ImageUtils.hpp"
-#include "OtsuBinarizerCuda.cuh"
+#include "OtsuThresholdCuda.cuh"
 
 
 class CudaChangeDetection
@@ -33,7 +33,7 @@ class CudaChangeDetection
 
         ImageUtils *imageUtils = nullptr;
         CudaUtils *cudaUtils = nullptr;
-        OtsuBinarizerCuda *binarizer = nullptr;
+        OtsuThresholdCuda *binarizer = nullptr;
 
         uchar3 *hostOldImage = nullptr, *hostNewImage = nullptr, *hostOutputImage = nullptr;
         uchar3 *deviceOldImage = nullptr, *deviceNewImage = nullptr, *deviceOutputImage = nullptr;
@@ -71,7 +71,7 @@ class CudaChangeDetection
 /// @param oldImage Old Image Pixel Array in uchar3 Format
 /// @param newImage New Image Pixel Array in uchar3 Format
 /// @param outputImage Output Image Pixel Array (Blank) in uchar3 Format
-/// @param threshold  Threshold computed using Otsu Binarizer
+/// @param threshold  Threshold computed using Otsu Thresholding Algorithm
 /// @param size  Size of Old Image Pixel Array
 __global__ void cudaChangeDetection(uchar3 *oldImage, uchar3 *newImage, uchar3 *outputImage, int threshold, int size, int grayscale);
 

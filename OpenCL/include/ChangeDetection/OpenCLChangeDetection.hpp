@@ -21,7 +21,7 @@
 #include "../CLFW/CLFW.hpp"
 
 #include "ImageUtils.hpp"
-#include "OtsuBinarizerOpenCL.hpp"
+#include "OtsuThresholdOpenCL.hpp"
 
 
 class OpenCLChangeDetection
@@ -30,7 +30,7 @@ class OpenCLChangeDetection
     private:
         StopWatchInterface *oclTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
-        OtsuBinarizerOpenCL *binarizer = nullptr;
+        OtsuThresholdOpenCL *binarizer = nullptr;
         CLFW *clfw = nullptr;
 
         cl_mem deviceOldImage = NULL, deviceNewImage = NULL, deviceOutputImage = NULL;

@@ -1,4 +1,4 @@
-#include "../../include/ChangeDetection/OtsuBinarizerOpenCL.hpp"
+#include "../../include/ChangeDetection/OtsuThresholdOpenCL.hpp"
 
 const char *oclHistogram = 
     "__kernel void oclHistogramKernel(__global int *pixelData, __global int *histogram, int numPixels)" \
@@ -52,7 +52,7 @@ const char *oclClassVariances =
 
 	"}";
 
-OtsuBinarizerOpenCL::OtsuBinarizerOpenCL(void)
+OtsuThresholdOpenCL::OtsuThresholdOpenCL(void)
 {
     sdkCreateTimer(&gpuTimer);
 }
@@ -83,7 +83,7 @@ int* histogramGold(uchar *data, int items, int bins)
 }
 
 // Method Definitions
-void OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime)
+void OtsuThresholdOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime)
 {
     // Variable Declarations
     int *hostHistogram = nullptr;
@@ -202,7 +202,7 @@ void OtsuBinarizerOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *imag
     clfw->hostMemFree(&hostHistogram);
 }
 
-int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, double *gpuTime)
+int OtsuThresholdOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, double *gpuTime)
 {
     // Variable Declarations
     double allProbabilitySum = 0, maxVariance = 0;
@@ -272,7 +272,7 @@ int OtsuBinarizerOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
     return 0;
 }
 
-OtsuBinarizerOpenCL::~OtsuBinarizerOpenCL()
+OtsuThresholdOpenCL::~OtsuThresholdOpenCL()
 {
     if (gpuTimer)
     {

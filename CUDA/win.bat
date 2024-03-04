@@ -14,7 +14,7 @@ if %dll% == false (
         -I "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include" ^
         "../test/Main.cu" ^
         "../src/ChangeDetection/CudaChangeDetection.cu" ^
-        "../src/ChangeDetection/OtsuBinarizerCuda.cu" ^
+        "../src/ChangeDetection/OtsuThresholdCuda.cu" ^
         "../src/ChangeDetection/ImageUtils.cpp" ^
         "../src/Common/CudaUtils.cu" ^
         "../src/Common/Logger.cpp" ^

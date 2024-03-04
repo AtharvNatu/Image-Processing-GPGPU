@@ -18,15 +18,15 @@
 
 constexpr int HIST_BINS = 256;
 
-class OtsuBinarizerOpenCL
+class OtsuThresholdOpenCL
 {
     private:
         StopWatchInterface *gpuTimer = nullptr;
         
     public:
 
-        OtsuBinarizerOpenCL(void);
-        ~OtsuBinarizerOpenCL();
+        OtsuThresholdOpenCL(void);
+        ~OtsuThresholdOpenCL();
         
         /// @brief Generate Histogram From Input Image
         /// @param inputImage [IN] cv::Mat Pointer to input image

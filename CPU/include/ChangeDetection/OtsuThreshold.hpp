@@ -15,15 +15,15 @@
 
 #include "ImageUtils.hpp"
 
-class OtsuBinarizerCPU
+class OtsuThresholdCPU
 {
     private:
         StopWatchInterface *cpuTimer = nullptr;
 
     public:
 
-        OtsuBinarizerCPU(void);
-        ~OtsuBinarizerCPU();
+        OtsuThresholdCPU(void);
+        ~OtsuThresholdCPU();
         
         /// @brief Generate Histogram From Input Image
         /// @param inputImage cv::Mat Pointer to input image

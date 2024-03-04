@@ -60,7 +60,7 @@ CudaChangeDetection::CudaChangeDetection(void)
     // Code
     imageUtils = new ImageUtils();
     cudaUtils = new CudaUtils();
-    binarizer = new OtsuBinarizerCuda();
+    binarizer = new OtsuThresholdCuda();
 }
 
 //* RELEASE Mode
@@ -70,7 +70,7 @@ CudaChangeDetection::CudaChangeDetection(std::string logFilePath)
     logger = Logger::getInstance(logFilePath);
     cudaUtils = new CudaUtils();
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizerCuda();
+    binarizer = new OtsuThresholdCuda();
 }
 
 double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale)

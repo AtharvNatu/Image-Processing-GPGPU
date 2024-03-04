@@ -17,7 +17,7 @@
 
 constexpr int HIST_BINS = 256;
 
-class OtsuBinarizerCuda
+class OtsuThresholdCuda
 {
     private:
         //* Serial Timer
@@ -28,8 +28,8 @@ class OtsuBinarizerCuda
 
     public:
 
-        OtsuBinarizerCuda(void);
-        ~OtsuBinarizerCuda();
+        OtsuThresholdCuda(void);
+        ~OtsuThresholdCuda();
 
         /// @brief Generate Histogram From Input Image
         /// @param inputImage [IN] cv::Mat Pointer to input image

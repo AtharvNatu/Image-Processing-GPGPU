@@ -1,6 +1,6 @@
-#include "../../include/ChangeDetection/OtsuBinarizerCuda.cuh"
+#include "../../include/ChangeDetection/OtsuThresholdCuda.cuh"
 
-OtsuBinarizerCuda::OtsuBinarizerCuda(void)
+OtsuThresholdCuda::OtsuThresholdCuda(void)
 {
     // Code
     sdkCreateTimer(&gpuTimer);
@@ -49,7 +49,7 @@ __global__ void cudaComputeClassVariances(double *histogram, double allProbabili
 }
 
 // Method Definitions
-double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCount, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
+double* OtsuThresholdCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCount, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
 {
     // Variable Declarations
     uint_t *hostHistogram = nullptr, *deviceHistogram = nullptr;
@@ -108,7 +108,7 @@ double* OtsuBinarizerCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCo
     return normalizedHistogram;
 }
 
-int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
+int OtsuThresholdCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
 {
     // Variable Declarations
     double allProbabilitySum = 0, maxVariance = 0;
@@ -175,7 +175,7 @@ int OtsuBinarizerCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, Im
     return threshold;
 }   
 
-OtsuBinarizerCuda::~OtsuBinarizerCuda()
+OtsuThresholdCuda::~OtsuThresholdCuda()
 {
     // Code
     if (gpuTimer)

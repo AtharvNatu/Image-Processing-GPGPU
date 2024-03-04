@@ -7,7 +7,7 @@ CPUChangeDetection::CPUChangeDetection(void)
 {
     // Code
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizerCPU();
+    binarizer = new OtsuThresholdCPU();
 
     sdkCreateTimer(&cpuTimer);
 }
@@ -18,7 +18,7 @@ CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
     // Code
     logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
-    binarizer = new OtsuBinarizerCPU();
+    binarizer = new OtsuThresholdCPU();
 
     sdkCreateTimer(&cpuTimer);
 }
