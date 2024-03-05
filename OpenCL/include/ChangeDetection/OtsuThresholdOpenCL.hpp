@@ -22,6 +22,7 @@ class OtsuThresholdOpenCL
 {
     private:
         StopWatchInterface *gpuTimer = nullptr;
+        cl_mem deviceImage, deviceHistogram;
         
     public:
 
@@ -34,13 +35,7 @@ class OtsuThresholdOpenCL
         /// @param pixelCount [OUT] Total Pixels in image
         /// @param gpuTime [OUT] Kernel Execution Time
         /// @return Array containing histogram values in double precision
-        
-        //? double* computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime);
-        //? void computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime);
-        
-        //! Placeholder
-        std::vector<double> computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime);
-
+        double* computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime);
 
         /// @brief Get Threshold From Input Image
         /// @param inputImage [IN] cv::Mat Pointer to input image

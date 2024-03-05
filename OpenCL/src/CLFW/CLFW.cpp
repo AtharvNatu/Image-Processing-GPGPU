@@ -590,8 +590,9 @@ cl_mem CLFW::oclCreateBuffer(int flag, size_t oclDataSize)
         flag,
         oclDataSize,
         NULL,
-        &oclResult);
-
+        &oclResult
+    );
+    
     oclExecStatus(oclResult);
 
     return oclBuffer;
