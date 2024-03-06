@@ -7,7 +7,7 @@ CPUChangeDetection::CPUChangeDetection(void)
 {
     // Code
     imageUtils = new ImageUtils();
-    binarizer = new OtsuThresholdCPU();
+    otsuThreshold = new OtsuThresholdCPU();
 
     sdkCreateTimer(&cpuTimer);
 }
@@ -18,7 +18,7 @@ CPUChangeDetection::CPUChangeDetection(std::string logFilePath)
     // Code
     logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
-    binarizer = new OtsuThresholdCPU();
+    otsuThreshold = new OtsuThresholdCPU();
 
     sdkCreateTimer(&cpuTimer);
 }
@@ -202,8 +202,8 @@ double CPUChangeDetection::detectChanges(std::string oldImagePath, std::string n
     cv::Mat outputImage(oldImage.rows, oldImage.cols, CV_8UC3, cv::Scalar(0, 0, 0));
 
     //* 2. Ostu Thresholding
-    int threshold1 = binarizer->computeThreshold(&oldImage, imageUtils, multiThreading, threadCount, &cpuTime);
-    int threshold2 = binarizer->computeThreshold(&newImage, imageUtils, multiThreading, threadCount, &cpuTime);
+    int threshold1 = otsuThreshold->getImageThreshold(&oldImage, imageUtils, multiThreading, threadCount, &cpuTime);
+    int threshold2 = otsuThreshold->getImageThreshold(&newImage, imageUtils, multiThreading, threadCount, &cpuTime);
     int meanThreshold = (threshold1 + threshold2) / 2;
 
     //* 3. Differencing
@@ -244,8 +244,8 @@ CPUChangeDetection::~CPUChangeDetection(void)
     sdkDeleteTimer(&cpuTimer);
     cpuTimer = nullptr;
 
-    delete binarizer;
-    binarizer = nullptr;
+    delete otsuThreshold;
+    otsuThreshold = nullptr;
     
     delete imageUtils;
     imageUtils = nullptr;

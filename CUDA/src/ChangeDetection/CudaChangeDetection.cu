@@ -60,7 +60,7 @@ CudaChangeDetection::CudaChangeDetection(void)
     // Code
     imageUtils = new ImageUtils();
     cudaUtils = new CudaUtils();
-    binarizer = new OtsuThresholdCuda();
+    otsuThreshold = new OtsuThresholdCuda();
 }
 
 //* RELEASE Mode
@@ -70,7 +70,7 @@ CudaChangeDetection::CudaChangeDetection(std::string logFilePath)
     logger = Logger::getInstance(logFilePath);
     cudaUtils = new CudaUtils();
     imageUtils = new ImageUtils();
-    binarizer = new OtsuThresholdCuda();
+    otsuThreshold = new OtsuThresholdCuda();
 }
 
 double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string newImagePath, std::string outputPath, bool grayscale)
@@ -134,8 +134,8 @@ double CudaChangeDetection::detectChanges(std::string oldImagePath, std::string 
     size_t size = oldImage.size().height * oldImage.size().width;
 
     //* 2. Ostu Thresholding
-    int threshold1 = binarizer->computeThreshold(&oldImage, &gpuTime, imageUtils, cudaUtils);
-    int threshold2 = binarizer->computeThreshold(&newImage, &gpuTime, imageUtils, cudaUtils);
+    int threshold1 = otsuThreshold->computeThreshold(&oldImage, &gpuTime, imageUtils, cudaUtils);
+    int threshold2 = otsuThreshold->computeThreshold(&newImage, &gpuTime, imageUtils, cudaUtils);
     int meanThreshold = (threshold1 + threshold2) / 2;
 
     hostOldImage = new uchar3[size];
@@ -208,8 +208,8 @@ void CudaChangeDetection::cleanup(void)
 CudaChangeDetection::~CudaChangeDetection()
 {
     // Code
-    delete binarizer;
-    binarizer = nullptr;
+    delete otsuThreshold;
+    otsuThreshold = nullptr;
 
     delete cudaUtils;
     cudaUtils = nullptr;

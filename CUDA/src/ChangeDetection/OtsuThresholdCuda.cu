@@ -61,6 +61,7 @@ double* OtsuThresholdCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCo
     std::vector<uchar_t> imageData = imageUtils->getRawPixelData(inputImage);
     size_t totalPixels = imageData.size();
     *pixelCount = totalPixels;
+    std::cout << std::endl << "Total Pixels = " << totalPixels << std::endl;
 
     hostHistogram = new uint_t[HIST_BINS];
     memset(hostHistogram, 0, HIST_BINS);
@@ -76,6 +77,8 @@ double* OtsuThresholdCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCo
     dim3 BLOCKS(((totalPixels / 3) + (THREADS_PER_BLOCK - 1)) / THREADS_PER_BLOCK);
 
     long segmentSize = ceil(totalPixels / (THREADS_PER_BLOCK * BLOCKS.x)) + 1;
+
+    std::cout << std::endl << "Segment Size = " << segmentSize << std::endl;
 
     //* CUDA Kernel Call
     cudaUtils->createEvent(&start);
@@ -146,6 +149,14 @@ int OtsuThresholdCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, Im
     cudaUtils->getEventElapsedTime(gpuTime, start, end);
 
     cudaUtils->memCopy(hostBetweenClassVariances, deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
+
+    FILE* histFile = fopen("ocl-icv-hist.txt", "wb");
+        if (histFile == NULL)
+            std::cerr << std::endl << "Failed to open file" << std::endl;
+        for (int i = 0; i < HIST_BINS; i++)
+            fprintf(histFile, "\tVariance value %d -> %.5f\n", i, hostBetweenClassVariances[i]);
+        fprintf(histFile, "\n\n\n");
+    fclose(histFile);
 
     sdkStartTimer(&gpuTimer);
     {

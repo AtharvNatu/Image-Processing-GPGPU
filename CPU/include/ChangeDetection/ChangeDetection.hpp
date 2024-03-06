@@ -30,7 +30,7 @@ class CPUChangeDetection
     private:
         StopWatchInterface *cpuTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
-        OtsuThresholdCPU *binarizer = nullptr;
+        OtsuThresholdCPU *otsuThreshold = nullptr;
 
         /// @brief CPU Change Detection Kernel
         /// @param oldImage Image with old timestamp

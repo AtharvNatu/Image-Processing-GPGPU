@@ -33,7 +33,7 @@ class CudaChangeDetection
 
         ImageUtils *imageUtils = nullptr;
         CudaUtils *cudaUtils = nullptr;
-        OtsuThresholdCuda *binarizer = nullptr;
+        OtsuThresholdCuda *otsuThreshold = nullptr;
 
         uchar3 *hostOldImage = nullptr, *hostNewImage = nullptr, *hostOutputImage = nullptr;
         uchar3 *deviceOldImage = nullptr, *deviceNewImage = nullptr, *deviceOutputImage = nullptr;

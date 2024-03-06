@@ -30,7 +30,7 @@ class OpenCLChangeDetection
     private:
         StopWatchInterface *oclTimer = nullptr;
         ImageUtils *imageUtils = nullptr;
-        OtsuThresholdOpenCL *binarizer = nullptr;
+        OtsuThresholdOpenCL *otsuThreshold = nullptr;
         CLFW *clfw = nullptr;
 
         cl_mem deviceOldImage = NULL, deviceNewImage = NULL, deviceOutputImage = NULL;

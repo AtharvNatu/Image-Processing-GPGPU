@@ -57,7 +57,7 @@ OpenCLChangeDetection::OpenCLChangeDetection(void)
 {
     // Code
     imageUtils = new ImageUtils();
-    binarizer = new OtsuThresholdOpenCL();
+    otsuThreshold = new OtsuThresholdOpenCL();
     clfw = new CLFW();
 
     sdkCreateTimer(&oclTimer);
@@ -69,7 +69,7 @@ OpenCLChangeDetection::OpenCLChangeDetection(std::string logFilePath)
     // Code
     logger = Logger::getInstance(logFilePath);
     imageUtils = new ImageUtils();
-    binarizer = new OtsuThresholdOpenCL();
+    otsuThreshold = new OtsuThresholdOpenCL();
     clfw = new CLFW();
 
     sdkCreateTimer(&oclTimer);
@@ -143,8 +143,8 @@ double OpenCLChangeDetection::detectChanges(std::string oldImagePath, std::strin
     clfw->initialize();
 
     //* 2. Ostu Thresholding
-    int threshold1 = binarizer->computeThreshold(&oldAlphaImage, imageUtils, clfw, &gpuTime);
-    // int threshold2 = binarizer->computeThreshold(&newAlphaImage, imageUtils, clfw, &gpuTime);
+    int threshold1 = otsuThreshold->computeThreshold(&oldAlphaImage, imageUtils, clfw, &gpuTime);
+    // int threshold2 = otsuThreshold->computeThreshold(&newAlphaImage, imageUtils, clfw, &gpuTime);
     // int meanThreshold = (threshold1 + threshold2) / 2;
 
     //* 3. Differencing
@@ -192,8 +192,8 @@ OpenCLChangeDetection::~OpenCLChangeDetection(void)
     delete clfw;
     clfw = nullptr;
 
-    delete binarizer;
-    binarizer = nullptr;
+    delete otsuThreshold;
+    otsuThreshold = nullptr;
     
     delete imageUtils;
     imageUtils = nullptr;
