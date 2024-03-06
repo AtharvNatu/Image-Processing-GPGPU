@@ -22,7 +22,6 @@ class OtsuThresholdOpenCL
 {
     private:
         StopWatchInterface *gpuTimer = nullptr;
-        cl_mem deviceImage, deviceHistogram;
         
     public:
 

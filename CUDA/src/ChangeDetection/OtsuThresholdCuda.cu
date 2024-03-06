@@ -48,6 +48,7 @@ __global__ void cudaComputeClassVariances(double *histogram, double allProbabili
 
 }
 
+
 // Method Definitions
 double* OtsuThresholdCuda::computeHistogram(cv::Mat* inputImage, size_t *pixelCount, double *gpuTime, ImageUtils *imageUtils, CudaUtils *cudaUtils)
 {
@@ -145,7 +146,7 @@ int OtsuThresholdCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, Im
     cudaUtils->getEventElapsedTime(gpuTime, start, end);
 
     cudaUtils->memCopy(hostBetweenClassVariances, deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, cudaMemcpyDeviceToHost);
-    
+
     sdkStartTimer(&gpuTimer);
     {
         for (int i = 0; i < MAX_PIXEL_VALUE; i++)
@@ -171,6 +172,8 @@ int OtsuThresholdCuda::computeThreshold(cv::Mat* inputImage, double *gpuTime, Im
 
     delete[] hostHistogram;
     hostHistogram = nullptr;
+
+    std::cout << std::endl << "CUDA Threshold = " << threshold << std::endl;
 
     return threshold;
 }   

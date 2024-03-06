@@ -169,6 +169,8 @@ int OtsuThresholdCPU::computeThreshold(cv::Mat* inputImage, ImageUtils *imageUti
     }
     sdkStopTimer(&cpuTimer);
     *cpuTime += sdkGetTimerValue(&cpuTimer);
+
+    std::cout << std::endl << "CPU Threshold = " << threshold << std::endl;
    
     return threshold;
 }

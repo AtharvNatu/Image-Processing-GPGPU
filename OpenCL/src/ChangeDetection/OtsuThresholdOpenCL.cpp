@@ -27,27 +27,54 @@ const char *oclHistogram =
 		"}" \
 	"}";
 
-const char *oclClassVariances = 
-    "__kernel void oclComputeClassVariances(__global double *histogram, double allProbabilitySum, __global double *betweenClassVariances, int totalPixels)" \
+const char *oclClassVariance = 
+    "__kernel void oclInterClassVariance(__global double *histogram, __global double *interClassVariance, double allProbabilitySum, int totalPixels)" \
 	"{" \
+        "const float epsilon = 1e-5f;" \
+        "float backgroundSum = 0.0f, foregroundSum = 0.0f;" \
+        "float backgroundWeight = 0.0f, foregroundWeight = 0.0f;" \
+        "float maxVariance = 0.0f;" \
+        "int threshold = 0;" \
+        
         "int pixelID = get_global_id(0);" \
 
-        "double firstClassProbability = 0, secondClassProbability = 0;" \
-        "double firstClassMean = 0, secondClassMean = 0;" \
-        "double firstProbabilitySum = 0;" \
-
-        "for (int i = 0; i <= pixelID % 256; i++)" \
+        "if (pixelID < 256)" \
         "{" \
-            "firstClassProbability = firstClassProbability + histogram[i];" \
-            "firstProbabilitySum += i * histogram[i];" \
+            "for (int i = 0; i <= pixelID; ++i)" \
+            "{" \
+                "backgroundWeight += histogram[i];" \
+                "if (backgroundWeight == 0)" \
+                "{" \
+                    "continue;" \
+                "}" \
+
+                "foregroundWeight = totalPixels - backgroundWeight;" \
+                "if (foregroundWeight == 0)" \
+                "{" \
+                    "break;" \
+                "}" \
+
+                "backgroundSum += i * histogram[i];" \
+
+                "float backgroundMean = backgroundSum / backgroundWeight;" \
+                "float foregroundMean = (allProbabilitySum - backgroundSum) / foregroundWeight;" \
+
+                "float variance = (float)backgroundWeight * (float)foregroundWeight * (backgroundMean - foregroundMean) * (backgroundMean - foregroundMean);" \
+
+                "if (variance > maxVariance)" \
+                "{" \
+                    "maxVariance = variance;" \
+                    "threshold = i;" \
+                "}" \
+            "}" \
+
+            "if (get_global_id(0) == 0)" \
+            "{" \
+                "interClassVariance[0] = maxVariance / totalPixels;" // Normalized inter-class variance
+                "interClassVariance[1] = (float)threshold;" // Threshold value
+            "}" \
+
         "}" \
-
-        "secondClassProbability = 1 - firstClassProbability;" \
-
-        "firstClassMean = (double)firstProbabilitySum / (double)firstClassProbability;" \
-        "secondClassMean = (double)(allProbabilitySum - firstProbabilitySum) / (double)secondClassProbability;" \
-
-        "betweenClassVariances[pixelID] = firstClassProbability * secondClassProbability * pow((firstClassMean - secondClassMean), 2);" \
 
 	"}";
 
@@ -61,6 +88,7 @@ OtsuThresholdOpenCL::OtsuThresholdOpenCL(void)
 double* OtsuThresholdOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *imageUtils, CLFW *clfw, size_t *pixelCount, double *gpuTime)
 {
     // Variable Declarations
+    cl_mem deviceHistogram = nullptr, deviceImage = nullptr;
     std::vector<uint_t> hostHistogram(HIST_BINS, 0);
     double *normalizedHistogram = nullptr;
 
@@ -79,7 +107,7 @@ double* OtsuThresholdOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
         inputImage->data
     );
 
-    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, histogramSize);
+    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, histogramSize);
     clfw->oclWriteBuffer(deviceHistogram, histogramSize, hostHistogram.data());
 
     clfw->oclCreateProgram(oclHistogram);
@@ -106,6 +134,8 @@ double* OtsuThresholdOpenCL::computeHistogram(cv::Mat* inputImage, ImageUtils *i
     sdkStopTimer(&gpuTimer);
     *gpuTime += sdkGetTimerValue(&gpuTimer);
 
+    clfw->oclReleaseBuffer(deviceHistogram);
+    clfw->oclReleaseBuffer(deviceImage);
     hostHistogram.clear();
 
     return normalizedHistogram;
@@ -115,8 +145,8 @@ int OtsuThresholdOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
 {
     // Variable Declarations
     double allProbabilitySum = 0, maxVariance = 0;
-    double *hostBetweenClassVariances = nullptr;
-    cl_mem deviceHistogram = nullptr, deviceBetweenClassVariances = nullptr;
+    double *hostInterClassVariance = nullptr;
+    cl_mem deviceHistogram = nullptr, deviceInterClassVariance = nullptr;
     int threshold = 0;
     size_t totalPixels = 0;
     size_t globalWorkSize = 256;
@@ -136,54 +166,68 @@ int OtsuThresholdOpenCL::computeThreshold(cv::Mat* inputImage, ImageUtils *image
     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
         allProbabilitySum += i * hostHistogram[i];
 
-    hostBetweenClassVariances = new double[MAX_PIXEL_VALUE];
-    memset(hostBetweenClassVariances, 0, MAX_PIXEL_VALUE);
+    hostInterClassVariance = new double[MAX_PIXEL_VALUE];
+    memset(hostInterClassVariance, 0, MAX_PIXEL_VALUE);
 
-    std::cout << std::endl << "1" << std::endl;
-    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, sizeof(double) * MAX_PIXEL_VALUE);
-    deviceBetweenClassVariances = clfw->oclCreateBuffer(CL_MEM_READ_WRITE, sizeof(double) * MAX_PIXEL_VALUE);
+    std::cout << std::endl << "hostInterClassVariance Done " << std::endl;
 
-     std::cout << std::endl << "2" << std::endl;
-    clfw->oclWriteBuffer(deviceHistogram, sizeof(double) * MAX_PIXEL_VALUE, hostHistogram);
-    clfw->oclWriteBuffer(deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, hostBetweenClassVariances);
+    deviceHistogram = clfw->oclCreateBuffer(CL_MEM_READ_ONLY, sizeof(double) * HIST_BINS);
+    deviceInterClassVariance = clfw->oclCreateBuffer(CL_MEM_READ_WRITE, sizeof(double) * HIST_BINS);
 
-     std::cout << std::endl << "3" << std::endl;
-    clfw->oclCreateProgram(oclClassVariances);
+    std::cout << std::endl << "oclCreateBuffer() Done " << std::endl;
 
-     std::cout << std::endl << "4" << std::endl;
-	clfw->oclCreateKernel("oclComputeClassVariances", "bdbi", deviceHistogram, allProbabilitySum, deviceBetweenClassVariances, (int)totalPixels);
+    clfw->oclWriteBuffer(deviceHistogram, sizeof(double) * HIST_BINS, hostHistogram);
+    clfw->oclWriteBuffer(deviceInterClassVariance, sizeof(double) * HIST_BINS, hostInterClassVariance);
+
+    std::cout << std::endl << "oclWriteBuffer() Done " << std::endl;
+
+    clfw->oclCreateProgram(oclClassVariance);
+
+	clfw->oclCreateKernel("oclInterClassVariance", "bbdi", deviceHistogram, deviceInterClassVariance, allProbabilitySum, (int)totalPixels);
 
     *gpuTime += clfw->oclExecuteKernel(globalWorkSize, localWorkSize, 1);
-     std::cout << std::endl << "5" << std::endl;
-    clfw->oclReadBuffer(deviceBetweenClassVariances, sizeof(double) * MAX_PIXEL_VALUE, hostBetweenClassVariances);
 
-     std::cout << std::endl << "6" << std::endl;
-    sdkStartTimer(&gpuTimer);
-    {
-        for (int i = 0; i < MAX_PIXEL_VALUE; i++)
-        {
-            if (hostBetweenClassVariances[i] > maxVariance)
-            {
-                threshold = i;
-                maxVariance = hostBetweenClassVariances[i];
-            }
-        }
-    }
-    sdkStopTimer(&gpuTimer);
-    *gpuTime += sdkGetTimerValue(&gpuTimer);
+    std::cout << std::endl << "oclExecuteKernel() Done " << std::endl;
 
-    std::cout << std::endl << "7" << std::endl;
-    clfw->oclReleaseBuffer(deviceBetweenClassVariances);
+    clfw->oclReadBuffer(deviceInterClassVariance, sizeof(double) * MAX_PIXEL_VALUE, hostInterClassVariance);
+
+    std::cout << std::endl << "oclReadBuffer() Done " << std::endl;
+
+    histFile = fopen("ocl-icv.txt", "wb");
+        if (histFile == NULL)
+            std::cerr << std::endl << "Failed to open file" << std::endl;
+        for (int i = 0; i < HIST_BINS; i++)
+            fprintf(histFile, "\tPixel value %d -> %.5f\n", i, hostInterClassVariance[i]);
+        fprintf(histFile, "\n\n\n");
+    fclose(histFile);
+
+    // sdkStartTimer(&gpuTimer);
+    // {
+    //     for (int i = 0; i < MAX_PIXEL_VALUE; i++)
+    //     {
+    //         if (hostInterClassVariance[i] > maxVariance)
+    //         {
+    //             threshold = i;
+    //             maxVariance = hostInterClassVariance[i];
+    //         }
+    //     }
+    // }
+    // sdkStopTimer(&gpuTimer);
+    // *gpuTime += sdkGetTimerValue(&gpuTimer);
+
+    clfw->oclReleaseBuffer(deviceInterClassVariance);
     clfw->oclReleaseBuffer(deviceHistogram);
 
-    delete[] hostBetweenClassVariances;
-    hostBetweenClassVariances = nullptr;
+    
 
     //! REMOVE THIS IF HISTOGRAM IS NEEDED
     // delete[] hostHistogram;
     // hostHistogram = nullptr;
 
-    std::cout << std::endl << "Threshold = " << threshold << std::endl;
+    std::cout << std::endl << "Threshold = " << hostInterClassVariance[1] << std::endl;
+
+    delete[] hostInterClassVariance;
+    hostInterClassVariance = nullptr;
 
     return 0;
 }

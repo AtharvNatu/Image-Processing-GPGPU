@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     std::cout << std::endl << "--------------------" << std::endl << "DEBUG MODE" << std::endl << "--------------------" << std::endl;
 
-    printDeviceProperties();
+    // printDeviceProperties();
 
     double gpuTime = cudaChangeDetector->detectChanges(
         std::string(argv[1]),
